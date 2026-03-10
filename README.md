@@ -27,13 +27,11 @@ Track sobriety, survive cravings, journal your journey — all from your own mac
 
 ```bash
 # 1. Clone
-git clone https://github.com/yourusername/thedayafter.git
+git clone https://github.com/thedayafterapp/thedayafter.git
 cd thedayafter
 
 # 2. Configure
-cp app/.env.example app/.env
-# Edit app/.env — at minimum set ADMIN_EMAIL to your email
-# Optionally add a CLAUDE_API_KEY for AI features
+cp .env.example .env
 
 # 3. Run
 docker compose up --build
