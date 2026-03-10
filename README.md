@@ -35,7 +35,10 @@ cd thedayafter
 # 2. Configure
 cp .env.example .env
 
-# 3. Run
+# 3. Create required Symfony placeholder
+touch app/.env
+
+# 4. Run
 docker compose up --build
 ```
 
