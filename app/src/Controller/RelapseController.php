@@ -92,6 +92,9 @@ class RelapseController extends AbstractController
         if ($type === 'cigarettes' || $type === 'both') {
             $user->setCigarettesQuitDate($newQuitDate);
         }
+        if ($type === 'cannabis') {
+            $user->setCannabisQuitDate($newQuitDate);
+        }
         if ($user->getAddictionType() !== 'both') {
             $user->setQuitDate($newQuitDate);
         }

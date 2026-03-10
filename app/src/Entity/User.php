@@ -46,6 +46,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $cigarettesQuitDate = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $cannabisQuitDate = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
 
@@ -74,6 +77,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::DECIMAL, precision: 8, scale: 2, nullable: true)]
     private ?string $cigarettesDailyCost = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 8, scale: 2, nullable: true)]
+    private ?string $cannabisDailyCost = null;
 
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $currency = 'USD';
@@ -161,6 +167,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getCigarettesQuitDate(): ?\DateTimeInterface { return $this->cigarettesQuitDate; }
     public function setCigarettesQuitDate(?\DateTimeInterface $d): static { $this->cigarettesQuitDate = $d; return $this; }
 
+    public function getCannabisQuitDate(): ?\DateTimeInterface { return $this->cannabisQuitDate; }
+    public function setCannabisQuitDate(?\DateTimeInterface $d): static { $this->cannabisQuitDate = $d; return $this; }
+
     public function getCreatedAt(): ?\DateTimeInterface { return $this->createdAt; }
     public function getUpdatedAt(): ?\DateTimeInterface { return $this->updatedAt; }
 
@@ -195,6 +204,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getCigarettesDailyCost(): ?string { return $this->cigarettesDailyCost; }
     public function setCigarettesDailyCost(?string $c): static { $this->cigarettesDailyCost = $c; return $this; }
 
+    public function getCannabisDailyCost(): ?string { return $this->cannabisDailyCost; }
+    public function setCannabisDailyCost(?string $c): static { $this->cannabisDailyCost = $c; return $this; }
+
     public function getCurrency(): ?string { return $this->currency; }
     public function setCurrency(?string $c): static { $this->currency = $c; return $this; }
 
@@ -222,6 +234,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return match($type) {
             'alcohol'    => $this->alcoholQuitDate ?? $this->quitDate,
             'cigarettes' => $this->cigarettesQuitDate ?? $this->quitDate,
+            'cannabis'   => $this->cannabisQuitDate,
             default      => $this->alcoholQuitDate ?? $this->cigarettesQuitDate ?? $this->quitDate,
         };
     }
@@ -233,13 +246,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         if ($type === 'longest') {
-            // Return the longest streak among active tracks
             $days = 0;
-            if ($this->addictionType !== 'cigarettes') {
+            if ($this->addictionType !== 'cigarettes' && $this->addictionType !== 'cannabis') {
                 $days = max($days, $this->getDaysSinceQuit('alcohol'));
             }
-            if ($this->addictionType !== 'alcohol') {
+            if ($this->addictionType !== 'alcohol' && $this->addictionType !== 'cannabis') {
                 $days = max($days, $this->getDaysSinceQuit('cigarettes'));
+            }
+            if ($this->addictionType === 'cannabis') {
+                $days = max($days, $this->getDaysSinceQuit('cannabis'));
             }
             return $days;
         }
@@ -257,11 +272,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         if ($type === 'longest') {
             $hours = 0.0;
-            if ($this->addictionType !== 'cigarettes') {
+            if ($this->addictionType !== 'cigarettes' && $this->addictionType !== 'cannabis') {
                 $hours = max($hours, $this->getHoursSinceQuit('alcohol'));
             }
-            if ($this->addictionType !== 'alcohol') {
+            if ($this->addictionType !== 'alcohol' && $this->addictionType !== 'cannabis') {
                 $hours = max($hours, $this->getHoursSinceQuit('cigarettes'));
+            }
+            if ($this->addictionType === 'cannabis') {
+                $hours = max($hours, $this->getHoursSinceQuit('cannabis'));
             }
             return $hours;
         }
@@ -323,6 +341,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $cost = match($type) {
             'alcohol'    => $this->alcoholDailyCost ?? $this->dailyCost,
             'cigarettes' => $this->cigarettesDailyCost ?? $this->dailyCost,
+            'cannabis'   => $this->cannabisDailyCost,
             default      => null,
         };
 

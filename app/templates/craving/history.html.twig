@@ -50,9 +50,11 @@
                             <span class="text-xs px-2 py-0.5 rounded-full
                                 {% if session.addictionType == 'alcohol' %}bg-red-50 text-red-600
                                 {% elseif session.addictionType == 'cigarettes' %}bg-amber-50 text-amber-600
+                                {% elseif session.addictionType == 'cannabis' %}bg-green-50 text-green-600
                                 {% else %}bg-gray-100 text-gray-500{% endif %}">
                                 {% if session.addictionType == 'alcohol' %}🍷 Alcohol
                                 {% elseif session.addictionType == 'cigarettes' %}🚬 Cigarettes
+                                {% elseif session.addictionType == 'cannabis' %}🌿 Cannabis
                                 {% else %}Both{% endif %}
                             </span>
                             {% if session.outcome == 'survived' %}

@@ -59,6 +59,12 @@ class SettingsController extends AbstractController
             $user->setCigarettesDailyCost($parseCost($request->request->get('cigarettes_daily_cost', '')));
         }
 
+        if ($addictionType === 'cannabis') {
+            $d = $parseDate($request->request->get('cannabis_quit_date', ''));
+            if ($d) { $user->setCannabisQuitDate($d); if (!$user->getQuitDate()) $user->setQuitDate($d); }
+            $user->setCannabisDailyCost($parseCost($request->request->get('cannabis_daily_cost', '')));
+        }
+
         $em->flush();
         $this->addFlash('success', 'Settings saved!');
         return $this->redirectToRoute('app_dashboard');

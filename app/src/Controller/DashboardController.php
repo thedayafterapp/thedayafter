@@ -90,6 +90,20 @@ class DashboardController extends AbstractController
             ];
         }
 
+        if ($type === 'cannabis') {
+            $days  = $user->getDaysSinceQuit('cannabis');
+            $hours = $user->getHoursSinceQuit('cannabis');
+            $tracks['cannabis'] = [
+                'label'     => 'Cannabis Free',
+                'icon'      => '🌿',
+                'color'     => 'from-green-500 to-emerald-600',
+                'days'      => $days,
+                'quit_date' => $user->getQuitDateFor('cannabis'),
+                'milestones'=> $this->getHealthMilestones('cannabis', $hours),
+                'money'     => $user->getMoneySaved('cannabis'),
+            ];
+        }
+
         return $tracks;
     }
 
@@ -119,8 +133,23 @@ class DashboardController extends AbstractController
             ['hours' => 8760,  'label' => '1 Year',    'desc' => 'Heart disease risk halved'],
         ];
 
+        $cannabis = [
+            ['hours' => 24,   'label' => '1 Day',     'desc' => 'THC levels dropping, appetite normalizing'],
+            ['hours' => 72,   'label' => '3 Days',    'desc' => 'Withdrawal peaks — irritability, insomnia pass soon'],
+            ['hours' => 168,  'label' => '1 Week',    'desc' => 'Sleep begins to improve, mood lifting'],
+            ['hours' => 336,  'label' => '2 Weeks',   'desc' => 'Memory and focus noticeably sharper'],
+            ['hours' => 720,  'label' => '1 Month',   'desc' => 'Mood stabilized, lung function improving'],
+            ['hours' => 2160, 'label' => '3 Months',  'desc' => 'Brain fog gone, cognitive function restored'],
+            ['hours' => 4320, 'label' => '6 Months',  'desc' => 'Memory and attention largely back to baseline'],
+            ['hours' => 8760, 'label' => '1 Year',    'desc' => "Brain's reward system substantially healed"],
+        ];
+
         return array_map(fn($m) => array_merge($m, ['achieved' => $hours >= $m['hours']]),
-            $type === 'cigarettes' ? $cigarettes : $alcohol
+            match($type) {
+                'cigarettes' => $cigarettes,
+                'cannabis'   => $cannabis,
+                default      => $alcohol,
+            }
         );
     }
 }

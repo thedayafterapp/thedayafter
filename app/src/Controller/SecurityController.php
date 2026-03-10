@@ -99,6 +99,14 @@ class SecurityController extends AbstractController
                     if (is_numeric($cost)) $user->setCigarettesDailyCost((string)(float)$cost);
                 }
 
+                if ($addictionType === 'cannabis') {
+                    $date = $parseDate($request->request->get('cannabis_quit_date', ''));
+                    $user->setCannabisQuitDate($date);
+                    if (!$user->getQuitDate()) $user->setQuitDate($date);
+                    $cost = $request->request->get('cannabis_daily_cost', '');
+                    if (is_numeric($cost)) $user->setCannabisDailyCost((string)(float)$cost);
+                }
+
                 $em->persist($user);
                 $em->flush();
                 $achievementService->checkAndAward($user);

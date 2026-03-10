@@ -54,9 +54,10 @@ PROMPT;
         }
 
         $context = match($addictionType) {
-            'alcohol' => "\n\nThis person is specifically working on alcohol recovery.",
+            'alcohol'    => "\n\nThis person is specifically working on alcohol recovery.",
             'cigarettes' => "\n\nThis person is specifically working on quitting smoking.",
-            default => "\n\nThis person is working on recovery from both alcohol and cigarettes.",
+            'cannabis'   => "\n\nThis person is specifically working on quitting cannabis/marijuana.",
+            default      => "\n\nThis person is working on recovery from both alcohol and cigarettes.",
         };
 
         try {
