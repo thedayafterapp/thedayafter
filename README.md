@@ -3,7 +3,9 @@
 **A free, open-source addiction recovery platform.**
 Track sobriety, survive cravings, journal your journey — all from your own machine.
 
-> Built with love for anyone trying to break free. Free forever. 
+🌐 **[thedayafter.app](https://thedayafter.app)** — or self-host in 3 steps below.
+
+> Built with love for anyone trying to break free. Free forever.
 
 ---
 
