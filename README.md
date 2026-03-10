@@ -3,7 +3,7 @@
 **A free, open-source addiction recovery platform.**
 Track sobriety, survive cravings, journal your journey — all from your own machine.
 
-🌐 **[thedayafter.app](https://thedayafter.app)** — or self-host in 3 steps below.
+🌐 **[thedayafter.app](https://thedayafter.app)** — or self-host in 4 steps below.
 
 > Built with love for anyone trying to break free. Free forever.
 
@@ -23,7 +23,7 @@ Track sobriety, survive cravings, journal your journey — all from your own mac
 
 ---
 
-## 🚀 Self-hosting in 3 steps
+## 🚀 Self-hosting in 4 steps
 
 **Requirements:** [Docker](https://www.docker.com/get-started) + Docker Compose
 
