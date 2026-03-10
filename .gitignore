@@ -1,0 +1,18 @@
+# Symfony
+app/var/
+app/vendor/
+app/.env
+
+# Root env — contains real secrets, never commit
+.env
+
+# Local docker overrides — copy from .example to activate
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,44 @@
+security:
+    password_hashers:
+        App\Entity\User:
+            algorithm: auto
+
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+        main:
+            lazy: true
+            provider: app_user_provider
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                default_target_path: app_dashboard
+                username_parameter: email
+                password_parameter: password
+                enable_csrf: true
+            login_throttling:
+                max_attempts: 10
+                interval: '5 minutes'
+            logout:
+                path: app_logout
+                target: app_home
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 1209600
+
+    access_control:
+        - { path: ^/dashboard, roles: ROLE_USER }
+        - { path: ^/craving, roles: ROLE_USER }
+        - { path: ^/journal, roles: ROLE_USER }
+        - { path: ^/checkin, roles: ROLE_USER }
+        - { path: ^/achievements, roles: ROLE_USER }
+        - { path: ^/settings, roles: ROLE_USER }
+        - { path: ^/relapse, roles: ROLE_USER }
+        - { path: ^/api, roles: ROLE_USER }

@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+{% block title %}Your Journey{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto px-4 py-10">
+
+    <div class="text-center mb-8">
+        <a href="{{ path('app_dashboard') }}" class="text-gray-500 hover:text-gray-700 text-sm">← Dashboard</a>
+        <div class="text-4xl mt-4 mb-2">📖</div>
+        <h1 class="text-3xl font-black text-gray-900">Your Journey</h1>
+        <p class="text-gray-500 mt-1">Every entry here took courage to log.</p>
+    </div>
+
+    {% if logs is empty %}
+    <div class="bg-teal-50 border border-teal-200 rounded-2xl p-8 text-center">
+        <div class="text-4xl mb-3">🌱</div>
+        <h2 class="text-xl font-bold text-teal-800">No setbacks logged</h2>
+        <p class="text-teal-600 mt-2">Keep going. Your streak is intact.</p>
+    </div>
+    {% else %}
+
+    <div class="bg-indigo-50 border border-indigo-100 rounded-2xl px-6 py-4 mb-8 text-sm text-indigo-800 leading-relaxed">
+        Relapse rates for addiction are <strong>40–60%</strong> — similar to diabetes and hypertension.
+        Every time you restarted, you chose recovery again. That pattern matters more than any single slip.
+    </div>
+
+    {# Summary stats #}
+    {% set total = logs|length %}
+    {% set longestStreak = 0 %}
+    {% for log in logs %}
+        {% if log.previousStreakDays > longestStreak %}{% set longestStreak = log.previousStreakDays %}{% endif %}
+    {% endfor %}
+
+    <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+            <div class="text-3xl font-black text-indigo-600">{{ total }}</div>
+            <div class="text-xs font-medium text-gray-500 mt-1">Times You Restarted</div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+            <div class="text-3xl font-black text-teal-600">{{ longestStreak }}</div>
+            <div class="text-xs font-medium text-gray-500 mt-1">Longest Streak Before a Setback</div>
+        </div>
+    </div>
+
+    {# Timeline #}
+    <div class="space-y-4">
+        {% for log in logs %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex items-start gap-4 flex-1">
+                    <div class="w-2 h-2 rounded-full flex-shrink-0 mt-2
+                                {{ log.addictionType == 'alcohol' ? 'bg-red-400' : (log.addictionType == 'cigarettes' ? 'bg-amber-400' : 'bg-purple-400') }}">
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-semibold text-gray-800 text-sm capitalize">
+                                {{ log.addictionType == 'both' ? 'Both tracks' : log.addictionType }}
+                            </span>
+                            <span class="text-xs text-gray-400">{{ log.relapsedAt|date('F j, Y', user.timezone) }}</span>
+                        </div>
+
+                        {% if log.previousStreakDays > 0 %}
+                        <div class="mt-1.5 inline-flex items-center gap-1.5 bg-teal-50 border border-teal-100 rounded-full px-3 py-0.5">
+                            <span class="text-teal-600 text-xs font-semibold">{{ log.previousStreakDays }} days</span>
+                            <span class="text-teal-400 text-xs">clean before this</span>
+                        </div>
+                        {% endif %}
+                        {% if log.moneySavedAtRelapse %}
+                        <div class="mt-1.5 inline-flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-full px-3 py-0.5 ml-1">
+                            <span class="text-green-600 text-xs font-semibold">{{ user.currency }} {{ log.moneySavedAtRelapse|number_format(2) }}</span>
+                            <span class="text-green-400 text-xs">saved during that streak</span>
+                        </div>
+                        {% endif %}
+
+                        {% if log.notes %}
+                        <p class="text-sm text-gray-600 mt-2 leading-relaxed italic">"{{ log.notes }}"</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ path('app_relapse_delete', {id: log.id}) }}"
+                      onsubmit="return confirm('Remove this entry?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_relapse_' ~ log.id) }}">
+                    <button type="submit" class="text-gray-300 hover:text-red-400 transition flex-shrink-0" title="Remove">
+                        🗑
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% endif %}
+
+    <div class="mt-8 text-center">
+        <a href="{{ path('app_relapse') }}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 hover:border-gray-300 text-gray-600 rounded-xl text-sm font-medium transition shadow-sm">
+            🔄 Log a setback
+        </a>
+    </div>
+
+</div>
+{% endblock %}

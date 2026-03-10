@@ -1,0 +1,165 @@
+{% extends 'base.html.twig' %}
+{% block title %}Alex — AI Coach{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900"
+     x-data="chatApp()" x-init="scrollToBottom()">
+
+    <div class="max-w-2xl mx-auto px-4 py-8">
+
+        <div class="text-center mb-6">
+            <a href="{{ path('app_craving_history') }}" class="text-white/50 hover:text-white/80 text-sm">← Back to chat history</a>
+            <div class="mt-4">
+                <div class="text-3xl mb-2">💬</div>
+                <h1 class="text-2xl font-black text-white">Alex is with you</h1>
+                <p class="text-white/60 text-sm">CBT-trained AI recovery coach · Available 24/7</p>
+            </div>
+        </div>
+
+        {# Chat messages #}
+        <div class="bg-white/5 backdrop-blur rounded-3xl p-4 mb-4 h-[420px] overflow-y-auto flex flex-col gap-3" id="chat-messages">
+
+            {# Server-rendered messages #}
+            {% for msg in messages %}
+            <div class="flex {{ msg.role == 'user' ? 'justify-end' : 'justify-start' }}">
+                <div class="{{ msg.role == 'user'
+                    ? 'bg-teal-500 text-white rounded-3xl rounded-br-sm px-4 py-3 max-w-xs text-sm'
+                    : 'bg-white/15 text-white rounded-3xl rounded-bl-sm px-4 py-3 max-w-sm text-sm leading-relaxed' }}"
+                    {% if msg.role == 'assistant' %}data-md="{{ msg.content|e('html_attr') }}"{% endif %}>
+                    {% if msg.role == 'user' %}{{ msg.content|e }}{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {# Dynamically added messages go here #}
+            <template x-for="msg in newMessages" :key="msg.id">
+                <div :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+                    <div :class="msg.role === 'user'
+                            ? 'bg-teal-500 text-white rounded-3xl rounded-br-sm px-4 py-3 max-w-xs text-sm'
+                            : 'bg-white/15 text-white rounded-3xl rounded-bl-sm px-4 py-3 max-w-sm text-sm leading-relaxed'"
+                         x-html="msg.role === 'user' ? escapeHtml(msg.content) : renderMarkdown(msg.content)"></div>
+                </div>
+            </template>
+
+            <div x-show="loading" class="flex justify-start">
+                <div class="bg-white/15 text-white/60 rounded-3xl rounded-bl-sm px-4 py-3 text-sm">
+                    <span class="inline-flex gap-1">
+                        <span class="animate-bounce" style="animation-delay:0ms">●</span>
+                        <span class="animate-bounce" style="animation-delay:150ms">●</span>
+                        <span class="animate-bounce" style="animation-delay:300ms">●</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        {# Input #}
+        <form @submit.prevent="sendMessage()" class="flex gap-2 mb-6">
+            <input x-model="inputMessage" type="text"
+                   class="flex-1 bg-white/10 backdrop-blur border border-white/20 text-white placeholder-white/40 rounded-2xl px-4 py-3 focus:outline-none focus:border-teal-400 transition"
+                   placeholder="Tell Alex what you're feeling..."
+                   maxlength="500"
+                   :disabled="loading"
+                   x-ref="input">
+            <button type="submit" :disabled="loading || !inputMessage.trim()"
+                    class="px-5 py-3 bg-teal-500 hover:bg-teal-600 disabled:opacity-50 text-white rounded-2xl font-semibold transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                </svg>
+            </button>
+        </form>
+
+        {# Survived button #}
+        <div class="text-center">
+            <div class="bg-white/10 backdrop-blur rounded-2xl p-5">
+                <p class="text-white/70 text-sm mb-4">Did you get through the craving?</p>
+                <button @click="markSurvived()" :disabled="survived"
+                        :class="survived ? 'bg-green-600 cursor-default' : 'bg-green-500 hover:bg-green-600'"
+                        class="px-8 py-3 text-white rounded-xl font-bold transition">
+                    <span x-show="!survived">🎉 I Survived It! (+100 XP)</span>
+                    <span x-show="survived" x-cloak>✅ Amazing! You did it!</span>
+                </button>
+                <a href="{{ path('app_dashboard') }}" class="block mt-3 text-white/50 hover:text-white/80 text-sm">Return to dashboard</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function escapeHtml(text) {
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderMarkdown(text) {
+    return escapeHtml(text)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(?!\*)(.+?)\*(?!\*)/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
+}
+
+// Render server-side assistant messages
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-md]').forEach(el => {
+        el.innerHTML = renderMarkdown(el.dataset.md);
+    });
+});
+
+function chatApp() {
+    return {
+        newMessages: [], inputMessage: '', loading: false, survived: {{ session.outcome == 'survived' ? 'true' : 'false' }},
+        msgId: 0,
+
+        async sendMessage() {
+            const msg = this.inputMessage.trim();
+            if (!msg || this.loading) return;
+            this.inputMessage = '';
+            this.newMessages.push({ id: this.msgId++, role: 'user', content: msg });
+            this.loading = true;
+            this.scrollToBottom();
+            try {
+                const res = await fetch('{{ path("app_craving_alex_send", {id: session.id}) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+                if (data.error) {
+                    this.newMessages.push({ id: this.msgId++, role: 'assistant', content: '⚠️ ' + data.error });
+                } else {
+                    this.newMessages.push({ id: this.msgId++, role: 'assistant', content: data.reply });
+                }
+            } catch(e) {
+                this.newMessages.push({ id: this.msgId++, role: 'assistant', content: '⚠️ Could not reach Alex. Check your connection and try again.' });
+            }
+            this.loading = false;
+            this.$nextTick(() => this.scrollToBottom());
+        },
+
+        async markSurvived() {
+            if (this.survived) return;
+            this.survived = true;
+            try {
+                const res = await fetch('{{ path("app_craving_alex_survived", {id: session.id}) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (data.new_achievements) {
+                    data.new_achievements.forEach(a => window.dispatchEvent(new CustomEvent('achievement-earned', { detail: `${a.icon} ${a.name} unlocked! +${a.xp} XP` })));
+                }
+                this.newMessages.push({ id: this.msgId++, role: 'assistant', content: data.survived_message });
+                this.$nextTick(() => this.scrollToBottom());
+            } catch(e) {}
+        },
+
+        scrollToBottom() {
+            const el = document.getElementById('chat-messages');
+            if (el) el.scrollTop = el.scrollHeight;
+        }
+    };
+}
+</script>
+{% endblock %}

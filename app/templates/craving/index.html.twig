@@ -1,0 +1,221 @@
+{% extends 'base.html.twig' %}
+{% block title %}SOS — Craving Support{% endblock %}
+
+{% block body %}
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900">
+
+    <div class="max-w-2xl mx-auto px-4 py-8">
+
+        <div class="text-center mb-6">
+            <a href="{{ path('app_dashboard') }}" class="text-white/50 hover:text-white/80 text-sm">← Back to dashboard</a>
+            <div class="mt-4">
+                <div class="text-5xl mb-3 breathe-circle inline-block">🌊</div>
+                <h1 class="text-3xl font-black text-white">You're Having a Craving</h1>
+                <p class="text-white/70 mt-2 text-lg">You reached out instead of giving in. That's strength.</p>
+                <p class="text-white/50 text-sm mt-1">Cravings peak in 15-20 minutes. They always pass.</p>
+            </div>
+        </div>
+
+        {# Motivation reminder #}
+        {% if user.motivation %}
+        <div class="mb-6 bg-white/10 backdrop-blur rounded-2xl px-5 py-4 border border-white/10">
+            <p class="text-white/50 text-xs uppercase tracking-wide font-semibold mb-1">Remember why you're here</p>
+            <p class="text-white font-semibold text-lg">"{{ user.motivation }}"</p>
+        </div>
+        {% endif %}
+
+        {# Coping techniques library #}
+        <div class="mb-6" x-data="{ active: 'breathe' }">
+            <div class="flex gap-2 overflow-x-auto pb-1 mb-4">
+                {% for key, label in {'breathe': '🫁 Breathing', 'ground': '👁️ Grounding', 'cold': '❄️ Cold Water', 'move': '🚶 Move', 'urge': '🌊 Urge Surf'} %}
+                <button @click="active = '{{ key }}'"
+                        :class="active === '{{ key }}' ? 'bg-teal-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'"
+                        class="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition">
+                    {{ label }}
+                </button>
+                {% endfor %}
+            </div>
+
+            {# Breathing #}
+            <div x-show="active === 'breathe'" x-data="breathingExercise()"
+                 class="bg-white/10 backdrop-blur rounded-2xl p-6 text-center">
+                <p class="text-white/70 text-sm mb-4">4-7-8 Breathing — activates your parasympathetic nervous system</p>
+                <div class="relative flex items-center justify-center mb-5">
+                    <div class="w-28 h-28 rounded-full bg-teal-500/30 flex items-center justify-center transition-all duration-1000"
+                         :style="{ transform: `scale(${breatheScale})`, opacity: breatheOpacity }">
+                        <div class="w-16 h-16 rounded-full bg-teal-400/50 flex items-center justify-center">
+                            <span class="text-white font-bold text-xl" x-text="breatheCount"></span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-white font-semibold" x-text="breathePhase"></p>
+                <button @click="toggleBreathing()" class="mt-4 px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-semibold transition text-sm" x-text="breathing ? 'Pause' : 'Start'"></button>
+            </div>
+
+            {# Grounding 5-4-3-2-1 #}
+            <div x-show="active === 'ground'" class="bg-white/10 backdrop-blur rounded-2xl p-6 text-white" x-data="{ step: 0 }">
+                <p class="text-white/70 text-sm mb-4">5-4-3-2-1 Grounding — pulls you into the present moment</p>
+                {% set steps = [
+                    {n: 5, sense: 'SEE',   q: 'Name 5 things you can see right now'},
+                    {n: 4, sense: 'HEAR',  q: 'Name 4 things you can hear'},
+                    {n: 3, sense: 'FEEL',  q: 'Name 3 things you can physically feel (chair, floor, clothes)'},
+                    {n: 2, sense: 'SMELL', q: 'Name 2 things you can smell (or remember a smell you love)'},
+                    {n: 1, sense: 'TASTE', q: 'Name 1 thing you can taste right now'},
+                ] %}
+                {% for s in steps %}
+                <div x-show="step === {{ loop.index0 }}" class="text-center">
+                    <div class="text-5xl font-black text-teal-400 mb-3">{{ s.n }}</div>
+                    <p class="font-bold text-lg">Things you can <span class="text-teal-300">{{ s.sense }}</span></p>
+                    <p class="text-white/70 text-sm mt-1 mb-5">{{ s.q }}</p>
+                    <button @click="step = {{ loop.index0 + 1 }}" {% if loop.last %}@click="step = 0"{% endif %}
+                            class="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-semibold text-sm transition">
+                        {{ loop.last ? 'Done ✓' : 'Next →' }}
+                    </button>
+                </div>
+                {% endfor %}
+                <div x-show="step === 5" class="text-center">
+                    <div class="text-4xl mb-3">✅</div>
+                    <p class="font-bold text-teal-300">You just grounded yourself.</p>
+                    <p class="text-white/60 text-sm mt-1">How's that craving now?</p>
+                    <button @click="step = 0" class="mt-3 text-sm text-white/50 hover:text-white/80">Start again</button>
+                </div>
+            </div>
+
+            {# Cold water #}
+            <div x-show="active === 'cold'" class="bg-white/10 backdrop-blur rounded-2xl p-6 text-white">
+                <p class="text-white/70 text-sm mb-4">The dive reflex — scientifically proven to reduce anxiety fast</p>
+                <div class="space-y-4 text-sm">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">❄️</span>
+                        <div><strong>Cold water on face</strong> — Fill a bowl with cold water and submerge your face for 30 seconds. Activates the mammalian dive reflex, dropping heart rate by up to 25%.</div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">🧊</span>
+                        <div><strong>Ice cube in hand</strong> — Hold an ice cube. The sharp sensation redirects your brain's attention away from the craving.</div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">🚿</span>
+                        <div><strong>Cold shower</strong> — Even 30 seconds of cold water releases norepinephrine — a natural mood boost.</div>
+                    </div>
+                </div>
+            </div>
+
+            {# Move #}
+            <div x-show="active === 'move'" class="bg-white/10 backdrop-blur rounded-2xl p-6 text-white">
+                <p class="text-white/70 text-sm mb-4">Physical movement burns off dopamine urges and shifts brain chemistry</p>
+                <div class="space-y-3 text-sm">
+                    <div class="flex items-start gap-3"><span class="text-2xl">🚶</span><div><strong>5-minute walk</strong> — Just step outside. Change of scene + movement = craving interruption.</div></div>
+                    <div class="flex items-start gap-3"><span class="text-2xl">💪</span><div><strong>20 jumping jacks</strong> — Quick burst of movement. Sounds silly. Works every time.</div></div>
+                    <div class="flex items-start gap-3"><span class="text-2xl">🧘</span><div><strong>Stretch for 2 minutes</strong> — Roll your neck, stretch your arms. Physical sensation grounds you.</div></div>
+                    <div class="flex items-start gap-3"><span class="text-2xl">📞</span><div><strong>Call someone</strong> — You don't have to mention the craving. Just connect. Connection is the opposite of addiction.</div></div>
+                </div>
+            </div>
+
+            {# Urge surfing #}
+            <div x-show="active === 'urge'" class="bg-white/10 backdrop-blur rounded-2xl p-6 text-white" x-data="urgeSurf()">
+                <p class="text-white/70 text-sm mb-4">Urge surfing — observe the craving without acting on it. Research shows this reduces cravings over time.</p>
+                <div class="space-y-3 text-sm leading-relaxed">
+                    <p>🌊 <strong>Notice it:</strong> Where do you feel the craving in your body? Chest? Hands? Jaw? Just observe it. Name it. "I notice tightness in my chest."</p>
+                    <p>📈 <strong>Watch it rise:</strong> Cravings are waves. They build. They peak — usually around 15-20 minutes. You don't have to stop it. Just watch it.</p>
+                    <p>📉 <strong>Watch it fall:</strong> Every craving falls. It's a biological fact. The wave breaks whether or not you give in to it.</p>
+                    <p>🏄 <strong>Surf it:</strong> You are not the craving. You are the surfer. The wave is just a wave. Let it pass under you.</p>
+                </div>
+                <div class="mt-4 bg-white/10 rounded-xl p-4 text-center">
+                    <div x-show="!running && !done">
+                        <p class="text-white/60 text-sm mb-3">Start the timer. Sit with it. You will win.</p>
+                        <button @click="start()" class="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-semibold text-sm transition">
+                            Start 15-min Timer
+                        </button>
+                    </div>
+                    <div x-show="running && !done">
+                        <p class="text-white/50 text-xs uppercase tracking-wide mb-1">Time until peak</p>
+                        <p class="text-4xl font-black text-teal-300 tabular-nums" x-text="display"></p>
+                        <div class="mt-3 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-teal-500 rounded-full transition-all duration-1000"
+                                 :style="{ width: progress + '%' }"></div>
+                        </div>
+                        <p class="text-white/40 text-xs mt-2" x-text="label"></p>
+                        <button @click="stop()" class="mt-3 text-white/30 hover:text-white/60 text-xs transition">Cancel</button>
+                    </div>
+                    <div x-show="done" x-cloak class="text-center">
+                        <div class="text-4xl mb-2">🏄</div>
+                        <p class="text-teal-300 font-bold text-lg">You surfed the wave.</p>
+                        <p class="text-white/60 text-sm mt-1">The peak has passed. You didn't give in.</p>
+                        <button @click="reset()" class="mt-3 text-white/40 hover:text-white/70 text-xs transition">Start again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Talk to Alex #}
+        <div class="text-center mb-6">
+            <a href="{{ path('app_craving_alex_new') }}"
+               class="inline-block px-8 py-4 bg-gradient-to-r from-teal-500 to-indigo-500 text-white rounded-2xl font-bold text-lg hover:opacity-90 transition shadow-xl">
+                💬 Talk to Alex (AI Coach)
+            </a>
+            <p class="text-white/40 text-xs mt-2">Available 24/7</p>
+            <a href="{{ path('app_craving_history') }}" class="block mt-3 text-white/40 hover:text-white/70 text-xs underline underline-offset-2">View past chat sessions →</a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function urgeSurf() {
+    const TOTAL = 15 * 60;
+    return {
+        running: false, done: false, remaining: TOTAL, interval: null,
+        get display() {
+            const m = Math.floor(this.remaining / 60);
+            const s = String(this.remaining % 60).padStart(2, '0');
+            return `${m}:${s}`;
+        },
+        get progress() {
+            return ((TOTAL - this.remaining) / TOTAL) * 100;
+        },
+        get label() {
+            if (this.remaining > 10 * 60) return 'Craving is still rising — stay with it.';
+            if (this.remaining > 5 * 60) return 'Approaching the peak. You\'re almost there.';
+            if (this.remaining > 0) return 'Past the peak. It\'s falling now. 💪';
+            return '';
+        },
+        start() {
+            this.running = true;
+            this.interval = setInterval(() => {
+                this.remaining--;
+                if (this.remaining <= 0) { clearInterval(this.interval); this.running = false; this.done = true; }
+            }, 1000);
+        },
+        stop() { clearInterval(this.interval); this.running = false; this.remaining = TOTAL; },
+        reset() { this.done = false; this.remaining = TOTAL; }
+    };
+}
+
+function breathingExercise() {
+    return {
+        breathing: false, breathePhase: 'Press Start', breatheCount: '', breatheScale: 1, breatheOpacity: 0.7,
+        interval: null, cycle: 0,
+        phases: [
+            { name: 'Breathe In…',  duration: 4, scale: 1.5, opacity: 1   },
+            { name: 'Hold…',        duration: 7, scale: 1.5, opacity: 0.8 },
+            { name: 'Breathe Out…', duration: 8, scale: 1,   opacity: 0.5 },
+        ],
+        toggleBreathing() {
+            if (this.breathing) { clearInterval(this.interval); this.breathing = false; this.breathePhase = 'Paused'; this.breatheCount = ''; }
+            else { this.breathing = true; this.runCycle(); }
+        },
+        runCycle() {
+            const phase = this.phases[this.cycle % 3];
+            this.breathePhase = phase.name; this.breatheScale = phase.scale; this.breatheOpacity = phase.opacity;
+            let count = phase.duration; this.breatheCount = count;
+            this.interval = setInterval(() => {
+                count--; this.breatheCount = count;
+                if (count <= 0) { clearInterval(this.interval); this.cycle++; if (this.breathing) this.runCycle(); }
+            }, 1000);
+        }
+    };
+}
+</script>
+{% endblock %}

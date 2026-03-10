@@ -1,0 +1,6 @@
+twig:
+    default_path: '%kernel.project_dir%/templates'
+    globals:
+        app_name: 'TheDayAfter'
+        admin_email: '%env(ADMIN_EMAIL)%'
+        ga_tracking_id: '%env(default::GA_TRACKING_ID)%'

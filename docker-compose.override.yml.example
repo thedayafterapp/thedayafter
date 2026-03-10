@@ -1,0 +1,19 @@
+version: '3.9'
+
+# Local development extras — NOT for production.
+# docker compose up automatically merges this file.
+# To start without it: docker compose -f docker-compose.yml up
+
+services:
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - "${PMA_PORT}:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - mysql
+    networks:
+      - alco

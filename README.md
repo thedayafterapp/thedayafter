@@ -1,0 +1,94 @@
+# 🌿 thedayafter
+
+**A free, open-source addiction recovery platform.**
+Track sobriety, survive cravings, journal your journey — all from your own machine.
+
+> Built with love for anyone trying to break free. Free forever. 
+
+---
+
+## ✨ Features
+
+- **Streak tracking** — Alcohol & cigarette-free counters with body healing timeline
+- **SOS Craving Support** — Breathing exercises, grounding techniques, AI coaching (CBT-trained)
+- **Daily Check-In** — Mood, craving intensity, HALT trigger tracking
+- **Journal** — CBT-style reflection prompts
+- **Achievements & XP** — 18 badges, 7 levels from Awakening to Beacon of Light
+- **Money saved** — See exactly what you've saved by quitting
+- **Community forum** — Share wins, ask for support, give encouragement
+- **Setback support** — Compassionate relapse logging — XP and achievements stay
+- **AI coaching** — Powered by Claude (optional — app works fully without it)
+
+---
+
+## 🚀 Self-hosting in 3 steps
+
+**Requirements:** [Docker](https://www.docker.com/get-started) + Docker Compose
+
+```bash
+# 1. Clone
+git clone https://github.com/yourusername/thedayafter.git
+cd thedayafter
+
+# 2. Configure
+cp app/.env.example app/.env
+# Edit app/.env — at minimum set ADMIN_EMAIL to your email
+# Optionally add a CLAUDE_API_KEY for AI features
+
+# 3. Run
+docker compose up --build
+```
+
+Open **http://localhost:8080** — that's it.
+
+> First build takes 2–3 minutes (installing PHP dependencies). Subsequent starts are instant.
+
+---
+
+## ⚙️ Configuration
+
+All config lives in `app/.env`:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `APP_SECRET` | Yes | Random secret — run `openssl rand -hex 32` |
+| `DATABASE_URL` | Yes | Pre-configured for Docker — leave as-is |
+| `CLAUDE_API_KEY` | No | AI coaching features. Get at [console.anthropic.com](https://console.anthropic.com) |
+| `ADMIN_EMAIL` | No | Your email — grants forum admin (delete posts, see flagged content) |
+
+---
+
+## 🏗️ Tech stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | PHP 8.2 + Symfony 7.2 |
+| Database | MySQL 8.0 + Doctrine ORM |
+| Frontend | TailwindCSS + Alpine.js (CDN) |
+| AI | Claude claude-opus-4-6 (Anthropic) |
+| Infrastructure | Docker + Nginx + PHP-FPM |
+
+**Ports (local):**
+- Web app → `http://localhost:8080`
+- MySQL → `localhost:3307`
+
+---
+
+## 🤝 Contributing
+
+PRs welcome. This is built for people who need it — if you can make it better, please do.
+
+1. Fork the repo
+2. Create a branch (`git checkout -b feature/my-improvement`)
+3. Commit your changes
+4. Open a pull request
+
+---
+
+## 📄 License
+
+MIT — free to use, modify, and distribute. See [LICENSE](LICENSE).
+
+---
+
+> *"Healing is not linear. Getting back up is the victory."*

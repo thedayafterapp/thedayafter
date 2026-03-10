@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+{% block title %}Chat History{% endblock %}
+
+{% block body %}
+<div class="max-w-3xl mx-auto px-4 py-10">
+
+    <div class="flex items-start justify-between mb-8">
+        <div>
+            <a href="{{ path('app_craving') }}" class="text-gray-500 hover:text-gray-700 text-sm">← Back to SOS</a>
+            <h1 class="text-3xl font-black text-gray-900 mt-4">Chat History</h1>
+            <p class="text-gray-500 mt-1">Your past sessions with Alex</p>
+        </div>
+        {% if sessions is not empty %}
+        <button onclick="deleteAllSessions()" class="mt-10 px-4 py-2 text-sm text-red-500 hover:text-red-700 hover:bg-red-50 border border-red-200 rounded-xl transition font-medium">
+            Delete All
+        </button>
+        {% endif %}
+    </div>
+
+    {% if sessions is empty %}
+    <div class="text-center py-20 text-gray-400">
+        <div class="text-5xl mb-4">💬</div>
+        <p class="text-lg font-medium">No sessions yet</p>
+        <p class="text-sm mt-1">When you talk to Alex during a craving, it'll appear here.</p>
+        <a href="{{ path('app_craving') }}" class="mt-6 inline-block px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-semibold transition">Open SOS</a>
+    </div>
+    {% else %}
+
+    <div class="space-y-4" x-data="historyApp()">
+        {% for session in sessions %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+             id="session-{{ session.id }}"
+             x-data="{ open: false }">
+
+            {# Session header #}
+            <div class="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50 transition"
+                 @click="open = !open">
+                <div class="flex items-center gap-3">
+                    <div class="text-2xl">
+                        {% if session.outcome == 'survived' %}🎉
+                        {% elseif session.outcome == 'relapsed' %}💙
+                        {% else %}💬
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="font-semibold text-gray-900 text-sm">
+                            {{ session.startedAt|date('M j, Y · g:i A') }}
+                        </div>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-xs px-2 py-0.5 rounded-full
+                                {% if session.addictionType == 'alcohol' %}bg-red-50 text-red-600
+                                {% elseif session.addictionType == 'cigarettes' %}bg-amber-50 text-amber-600
+                                {% else %}bg-gray-100 text-gray-500{% endif %}">
+                                {% if session.addictionType == 'alcohol' %}🍷 Alcohol
+                                {% elseif session.addictionType == 'cigarettes' %}🚬 Cigarettes
+                                {% else %}Both{% endif %}
+                            </span>
+                            {% if session.outcome == 'survived' %}
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 font-medium">✓ Survived</span>
+                            {% endif %}
+                            <span class="text-xs text-gray-400">{{ session.messages|length }} messages</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ path('app_craving_alex', {id: session.id}) }}"
+                       @click.stop
+                       class="text-xs px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg font-medium transition"
+                       title="Continue this conversation">
+                        Continue →
+                    </a>
+                    <button @click.stop="deleteSession({{ session.id }})"
+                            class="text-gray-300 hover:text-red-400 transition p-1 rounded-lg hover:bg-red-50"
+                            title="Delete session">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                    </button>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+            </div>
+
+            {# Messages #}
+            <div x-show="open" x-cloak class="border-t border-gray-100 px-5 py-4 space-y-3 bg-gray-50">
+                {% if session.messages is empty %}
+                <p class="text-sm text-gray-400 text-center py-2">No messages in this session.</p>
+                {% else %}
+                {% for msg in session.messages %}
+                <div class="flex {{ msg.role == 'user' ? 'justify-end' : 'justify-start' }}">
+                    {% if msg.role == 'assistant' %}
+                    <div class="max-w-xs rounded-2xl px-4 py-3 text-sm leading-relaxed bg-white text-gray-800 border border-gray-200 rounded-bl-sm"
+                         data-md="{{ msg.content|e('html_attr') }}"></div>
+                    {% else %}
+                    <div class="max-w-xs rounded-2xl px-4 py-3 text-sm leading-relaxed bg-teal-500 text-white rounded-br-sm">{{ msg.content|e }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function escapeHtml(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function renderMarkdown(t) {
+    return escapeHtml(t)
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(?!\*)(.+?)\*(?!\*)/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('[data-md]').forEach(el => {
+        el.innerHTML = renderMarkdown(el.dataset.md);
+    });
+});
+
+async function deleteAllSessions() {
+    if (!confirm('Delete all chat sessions? This cannot be undone.')) return;
+    const res = await fetch('{{ path('app_craving_delete_all') }}', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    if (res.ok) window.location.reload();
+}
+
+function historyApp() {
+    return {
+        async deleteSession(id) {
+            if (!confirm('Delete this chat session?')) return;
+            const res = await fetch(`/craving/session/${id}/delete`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (res.ok) {
+                document.getElementById('session-' + id).remove();
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

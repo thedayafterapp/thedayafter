@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block body %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+
+    <div class="mb-5">
+        <a href="{{ path('app_forum', {category: post.category}) }}" class="text-gray-500 hover:text-gray-700 text-sm">← Community</a>
+    </div>
+
+    {# Original post #}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+        <div class="flex items-start justify-between gap-3 mb-4">
+            <div>
+                <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full {{ post.categoryColor }}">{{ post.categoryLabel }}</span>
+                {% if post.flagged and app.user.email == admin_email %}
+                <span class="ml-2 text-xs text-red-400">⚑ flagged</span>
+                {% endif %}
+            </div>
+            <div class="flex items-center gap-2">
+                {% if user == post.user or app.user.email == admin_email %}
+                <form method="POST" action="{{ path('app_forum_delete_post', {id: post.id}) }}"
+                      onsubmit="return confirm('Delete this post and all replies?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete_post_' ~ post.id) }}">
+                    <button type="submit" class="text-gray-300 hover:text-red-400 transition text-sm" title="Delete post">🗑</button>
+                </form>
+                {% elseif not post.flagged %}
+                <form method="POST" action="{{ path('app_forum_flag_post', {id: post.id}) }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token('flag_post_' ~ post.id) }}">
+                    <button type="submit" class="text-gray-300 hover:text-amber-400 transition text-xs" title="Flag as inappropriate">⚑ flag</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <h1 class="text-xl font-black text-gray-900 mb-3">{{ post.title }}</h1>
+        <p class="text-gray-700 leading-relaxed whitespace-pre-wrap">{{ post.body }}</p>
+
+        <div class="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-xs text-gray-400">
+            <div class="w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs">
+                {{ post.user.forumUsername|first|upper }}
+            </div>
+            <span class="font-medium text-gray-600">{{ post.user.forumUsername ?? 'anonymous' }}</span>
+            <span>·</span>
+            <span>{{ post.createdAt|date('F j, Y \\a\\t g:i A', user.timezone) }}</span>
+        </div>
+    </div>
+
+    {# Replies #}
+    {% set replies = post.replies %}
+    {% if replies is not empty %}
+    <div class="mb-6">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            {{ replies|length }} {{ replies|length == 1 ? 'reply' : 'replies' }}
+        </h2>
+        <div class="space-y-3">
+            {% for reply in replies %}
+            <div id="reply-{{ reply.id }}" class="bg-white rounded-xl border border-gray-100 p-4 {{ reply.flagged ? 'opacity-60' : '' }}">
+                <div class="flex items-start justify-between gap-2">
+                    <p class="text-gray-700 text-sm leading-relaxed flex-1 whitespace-pre-wrap">{{ reply.body }}</p>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        {% if user == reply.user or app.user.email == admin_email %}
+                        <form method="POST" action="{{ path('app_forum_delete_reply', {id: reply.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_reply_' ~ reply.id) }}">
+                            <button type="submit" class="text-gray-300 hover:text-red-400 transition text-xs" title="Delete">🗑</button>
+                        </form>
+                        {% elseif not reply.flagged %}
+                        <form method="POST" action="{{ path('app_forum_flag_reply', {id: reply.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('flag_reply_' ~ reply.id) }}">
+                            <button type="submit" class="text-gray-300 hover:text-amber-400 transition text-xs" title="Flag">⚑</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                    <div class="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs">
+                        {{ reply.user.forumUsername|first|upper }}
+                    </div>
+                    <span class="font-medium text-gray-600">{{ reply.user.forumUsername ?? 'anonymous' }}</span>
+                    <span>·</span>
+                    <span>{{ reply.createdAt|date('M j, Y \\a\\t g:i A', user.timezone) }}</span>
+                    {% if reply.flagged and app.user.email == admin_email %}<span class="text-red-400">⚑ flagged</span>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {# Reply form #}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        {% if user.forumUsername %}
+            <h2 class="font-bold text-gray-900 mb-4">Leave a reply</h2>
+            {% if error %}
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">{{ error }}</div>
+            {% endif %}
+            <form method="POST">
+                <textarea name="body" required rows="3"
+                          class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 transition resize-none text-sm"
+                          placeholder="Support, share, relate…"></textarea>
+                <div class="flex items-center justify-between mt-3">
+                    <span class="text-xs text-gray-400">Posting as <strong class="text-gray-600">{{ user.forumUsername }}</strong></span>
+                    <button type="submit"
+                            class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-semibold text-sm transition">
+                        Reply
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <div class="text-center py-4">
+                <p class="text-gray-500 text-sm mb-3">Set a username to reply.</p>
+                <a href="{{ path('app_forum_setup') }}"
+                   class="px-5 py-2.5 bg-brand-600 text-white rounded-xl font-semibold text-sm hover:bg-brand-700 transition">
+                    Choose Username
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

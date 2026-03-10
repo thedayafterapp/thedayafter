@@ -1,0 +1,337 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TheDayAfter — Break Free, Reclaim Your Life{% endblock %}
+
+{% block body %}
+
+{# Hero Section #}
+<section class="gradient-hero min-h-screen flex items-center relative overflow-hidden">
+    {# Background decorative circles #}
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-white/5" style="animation: floatA 6s ease-in-out infinite;"></div>
+        <div class="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-white/5" style="animation: floatB 8s ease-in-out infinite;"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-white/[0.03]" style="animation: floatC 10s ease-in-out infinite;"></div>
+        <div class="absolute top-1/4 left-1/4 w-48 h-48 rounded-full bg-teal-400/5" style="animation: floatB 9s ease-in-out infinite reverse;"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full bg-purple-400/5" style="animation: floatA 7s ease-in-out infinite reverse;"></div>
+    </div>
+
+    <style>
+        @keyframes floatA {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33%       { transform: translate(30px, -40px) scale(1.05); }
+            66%       { transform: translate(-20px, 20px) scale(0.97); }
+        }
+        @keyframes floatB {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            40%       { transform: translate(-35px, 25px) scale(1.08); }
+            70%       { transform: translate(20px, -30px) scale(0.95); }
+        }
+        @keyframes floatC {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50%       { transform: translate(-50%, -50%) scale(1.12); }
+        }
+        @keyframes heroFadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes heroCTA {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+            50%       { box-shadow: 0 0 20px 6px rgba(255,255,255,0.25); }
+        }
+        @keyframes gentlePulse {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.05); }
+        }
+    </style>
+
+    <div class="max-w-6xl mx-auto px-4 py-24 relative z-10">
+        <div class="max-w-3xl">
+            <div class="flex flex-wrap gap-3 mb-8">
+                <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-4 py-2 text-white/90 text-sm font-medium">
+                    <span>🧠</span> Science-based recovery support
+                </div>
+                <a href="#opensource"
+                   style="animation: gentlePulse 2s ease-in-out infinite;"
+                   class="inline-flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-4 py-2 text-white/90 text-sm font-medium hover:bg-white/30 transition">
+                    <span>⭐</span> 100% Free & Open Source on Github
+                </a>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-black text-white leading-tight mb-6">
+                <span style="display:inline-block; animation: heroFadeUp 0.7s ease both; animation-delay: 0.1s;">Break Free.</span><br>
+                <span class="text-teal-300" style="display:inline-block; animation: heroFadeUp 0.7s ease both; animation-delay: 0.35s;">Reclaim</span><br>
+                <span style="display:inline-block; animation: heroFadeUp 0.7s ease both; animation-delay: 0.6s;">Your Life.</span>
+            </h1>
+            <p class="text-xl text-white/80 mb-10 leading-relaxed max-w-2xl"
+               style="animation: heroFadeUp 0.7s ease both; animation-delay: 0.85s;">
+                TheDayAfter uses AI, proven psychology, and gamification to help you
+                overcome alcohol and cigarette addiction — one day, one breath, one craving
+                at a time. <strong class="text-white">You are not alone in this.</strong>
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4"
+                 style="animation: heroFadeUp 0.7s ease both; animation-delay: 1.1s;">
+                <a href="{{ path('app_register') }}"
+                   class="px-8 py-4 bg-white text-brand-800 rounded-2xl font-bold text-lg hover:bg-brand-50 hover:scale-105 transition-all text-center shadow-xl"
+                   style="animation: heroCTA 2.5s ease-in-out infinite; animation-delay: 1.8s;">
+                    Start Your Journey — Free
+                </a>
+                <a href="#how-it-works"
+                   class="px-8 py-4 border-2 border-white/50 text-white rounded-2xl font-semibold text-lg hover:bg-white/10 transition text-center">
+                    See How It Works
+                </a>
+            </div>
+            <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-white/70 text-sm">
+                <span class="flex items-center gap-1.5">✓ <span>Free forever</span></span>
+                <span class="flex items-center gap-1.5">✓ <span>No credit card</span></span>
+                <span class="flex items-center gap-1.5">✓ <span>No judgment</span></span>
+                <span class="flex items-center gap-1.5">✓ <span>Just courage</span></span>
+            </div>
+
+            <div class="mt-14 flex flex-wrap gap-8">
+                <div class="text-white">
+                    <div class="text-3xl font-black">97%</div>
+                    <div class="text-white/70 text-sm">of cravings pass within 20 min</div>
+                </div>
+                <div class="text-white">
+                    <div class="text-3xl font-black">60%</div>
+                    <div class="text-white/70 text-sm">relapse risk reduced with CBT-based support</div>
+                </div>
+                <div class="text-white">
+                    <div class="text-3xl font-black">∞</div>
+                    <div class="text-white/70 text-sm">Your potential for change</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Scroll indicator #}
+    <a href="#science" class="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/50 hover:text-white/80 animate-bounce transition z-20">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+    </a>
+</section>
+
+{# The Science Section #}
+<section id="science" class="py-24 bg-white">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-black text-gray-900 mb-4">The Science of Breaking Free</h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+                Addiction is not a moral failure — it's a brain disease. Understanding it is the first step to beating it.
+            </p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="p-8 rounded-2xl bg-gradient-to-br from-teal-50 to-cyan-50 border border-teal-100">
+                <div class="text-4xl mb-4">🧠</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Dopamine Rewiring</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Every craving you resist literally rewires your brain. Neuroplasticity means new neural pathways form with every healthy choice. You're not just quitting — you're building a new brain.
+                </p>
+            </div>
+            <div class="p-8 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-100">
+                <div class="text-4xl mb-4">🌊</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Urge Surfing</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Research shows cravings peak at 15-20 minutes then fade — like a wave. You don't fight cravings, you observe them. Our AI coach guides you through each wave until it passes.
+                </p>
+            </div>
+            <div class="p-8 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100">
+                <div class="text-4xl mb-4">🎯</div>
+                <h3 class="text-xl font-bold text-gray-900 mb-3">CBT + Milestones</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Cognitive Behavioral Therapy shows that tracking triggers, moods, and thoughts transforms behavior. Celebrating milestones activates the same reward circuits that addiction hijacked.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# Features #}
+<section id="how-it-works" class="py-24 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-black text-gray-900 mb-4">Everything You Need to Succeed</h2>
+            <p class="text-lg text-gray-600">Built on evidence-based psychology, powered by AI.</p>
+        </div>
+
+        <div class="space-y-6">
+
+            {# Featured card — two columns #}
+            <div class="bg-gradient-to-br from-red-50 to-orange-50 border border-red-100 rounded-2xl p-8 shadow-sm">
+                <div class="inline-flex items-center gap-2 bg-red-100 text-red-700 text-xs font-semibold px-3 py-1 rounded-full mb-6">⭐ Most powerful features</div>
+                <div class="grid md:grid-cols-2 gap-8">
+
+                    {# Left: Alex #}
+                    <div class="flex gap-5 items-start">
+                        <div class="flex-shrink-0 w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center text-3xl">🆘</div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">Crisis AI Support — Alex</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">Talk to Alex, your AI recovery coach trained in CBT and motivational interviewing. Available 24/7 — no judgment, no wait times, real support when you need it most.</p>
+                        </div>
+                    </div>
+
+                    {# Right: Coping tools #}
+                    <div class="flex gap-5 items-start">
+                        <div class="flex-shrink-0 w-14 h-14 bg-orange-100 rounded-2xl flex items-center justify-center text-3xl">🛠️</div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">5 Instant Coping Tools</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-3">Science-backed techniques for the moment a craving hits — no internet needed.</p>
+                            <div class="flex flex-nowrap gap-1">
+                                <span class="bg-white border border-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">🫁 Breathing</span>
+                                <span class="bg-white border border-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">👁️ Grounding</span>
+                                <span class="bg-white border border-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">❄️ Cold Water</span>
+                                <span class="bg-white border border-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">🚶 Move</span>
+                                <span class="bg-white border border-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full whitespace-nowrap">🌊 Urge Surf</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {# Remaining 6 cards #}
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-md transition">
+                <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-2xl mb-4">🏆</div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Gamified Progress</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">Earn XP, unlock achievements, and level up from "Awakening" to "Beacon of Light". Your streak is your score. Every day clean is a win worth celebrating.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-md transition">
+                <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center text-2xl mb-4">💚</div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Health Timeline</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">Watch your body heal in real-time. From 20 minutes to 1 year, see exactly what's improving in your body as you rack up clean days.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-md transition">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-2xl mb-4">📊</div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Daily Check-Ins</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">Track mood, craving intensity, and HALT triggers daily. Research shows self-monitoring alone significantly improves recovery outcomes.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-md transition">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-2xl mb-4">📝</div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Reflection Journal</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">Write, reflect, and grow. Journaling is one of the most evidence-backed tools in recovery — and every entry earns you XP.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-md transition">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-2xl mb-4">💰</div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Money Saved Tracker</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">See exactly how much money you've saved by quitting. Real numbers are powerful motivators — watch your savings grow alongside your health.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl p-7 shadow-sm border border-gray-100 hover:shadow-md transition">
+                <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center text-2xl mb-4">🤝</div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Community</h3>
+                <p class="text-gray-600 text-sm leading-relaxed">You're not doing this alone. Share wins, ask for support, and encourage others who get it — because they're living it too.</p>
+            </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# Health Timeline Preview #}
+<section class="py-24 bg-white">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-black text-gray-900 mb-4">Your Body Starts Healing Immediately</h2>
+            <p class="text-lg text-gray-600">Here's what happens when you stop — starting from minute one.</p>
+        </div>
+        <div class="relative">
+            <div class="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-teal-400 to-purple-400"></div>
+            <div class="space-y-6">
+                {% set milestones = [
+                    {icon: '❤️', time: '20 Minutes', label: 'Heart rate and blood pressure begin to drop'},
+                    {icon: '🫁', time: '8 Hours', label: 'Carbon monoxide levels halve, blood sugar normalizes'},
+                    {icon: '⚡', time: '24 Hours', label: 'Risk of heart attack decreases, toxin clearance begins'},
+                    {icon: '👃', time: '48 Hours', label: 'Taste and smell start returning — food tastes amazing again'},
+                    {icon: '🧠', time: '1 Week', label: 'Mental clarity, better sleep, calmer mood'},
+                    {icon: '💪', time: '1 Month', label: 'Liver recovering, skin improving, lungs clearing'},
+                    {icon: '🏃', time: '3 Months', label: 'Lung function up 30%, circulation dramatically improved'},
+                    {icon: '👑', time: '1 Year', label: 'Heart disease risk halved. You\'ve changed your life.'},
+                ] %}
+                {% for m in milestones %}
+                <div class="flex gap-6 items-start pl-0">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-teal-400 to-brand-600 flex items-center justify-center text-xl flex-shrink-0 z-10 shadow-md">
+                        {{ m.icon }}
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4 flex-1">
+                        <div class="font-bold text-brand-700">{{ m.time }}</div>
+                        <div class="text-gray-700 text-sm mt-0.5">{{ m.label }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{# Open Source Section #}
+<section id="opensource" class="py-24 bg-gray-900 text-white">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <div class="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-1.5 text-sm text-white/70 font-medium mb-6">
+            ⭐ 100% Free &amp; Open Source
+        </div>
+        <h2 class="text-4xl font-black mb-4">Run it yourself. Own your data.</h2>
+        <p class="text-lg text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed">
+            TheDayAfter is fully open source under the MIT license. No subscription, no cloud account, no data sent anywhere you don't control.
+            One command and it runs on your own machine.
+        </p>
+
+        <div class="bg-white/5 border border-white/10 rounded-2xl p-6 text-left max-w-xl mx-auto mb-10 font-mono text-sm">
+            <div class="text-white/40 text-xs mb-3 uppercase tracking-wide">Terminal</div>
+            <div class="space-y-1.5">
+                <div><span class="text-white/40">$</span> <span class="text-teal-300">git clone</span> <span class="text-white">https://github.com/yourusername/thedayafter</span></div>
+                <div><span class="text-white/40">$</span> <span class="text-teal-300">cp</span> <span class="text-white">app/.env.example app/.env</span></div>
+                <div><span class="text-white/40">$</span> <span class="text-teal-300">docker compose up</span> <span class="text-white">--build</span></div>
+                <div class="pt-1 text-white/40"># Open http://localhost:8080 🎉</div>
+            </div>
+        </div>
+
+        <div class="grid sm:grid-cols-3 gap-6 text-left max-w-2xl mx-auto mb-10">
+            <div class="bg-white/5 rounded-xl p-5">
+                <div class="text-2xl mb-2">🔒</div>
+                <div class="font-semibold mb-1">Your data stays yours</div>
+                <div class="text-sm text-white/60">Runs locally. Nothing leaves your machine unless you choose.</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-5">
+                <div class="text-2xl mb-2">🛠️</div>
+                <div class="font-semibold mb-1">MIT licensed</div>
+                <div class="text-sm text-white/60">Use it, fork it, improve it. No strings attached.</div>
+            </div>
+            <div class="bg-white/5 rounded-xl p-5">
+                <div class="text-2xl mb-2">🤝</div>
+                <div class="font-semibold mb-1">Contributions welcome</div>
+                <div class="text-sm text-white/60">Built for people who need it. Help make it better.</div>
+            </div>
+        </div>
+
+        <a href="https://github.com/yourusername/thedayafter" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 rounded-2xl font-bold text-lg hover:bg-gray-100 transition shadow-xl">
+            ⭐ View on GitHub
+        </a>
+    </div>
+</section>
+
+{# CTA Section #}
+<section class="py-24 gradient-hero">
+    <div class="max-w-3xl mx-auto px-4 text-center">
+        <div class="text-6xl mb-6">🌿</div>
+        <h2 class="text-4xl md:text-5xl font-black text-white mb-6">
+            The best time to start was yesterday.<br>
+            The second best time is <span class="text-teal-300">right now.</span>
+        </h2>
+        <p class="text-xl text-white/80 mb-10">
+            Thousands of people just like you have decided enough is enough.
+            Your story doesn't have to keep being the same story.
+        </p>
+        <a href="{{ path('app_register') }}"
+           class="inline-block px-10 py-5 bg-white text-brand-800 rounded-2xl font-black text-xl hover:bg-brand-50 transition transform hover:scale-105 shadow-2xl">
+            Begin Your Freedom Today →
+        </a>
+        <p class="mt-6 text-white/60 text-sm">Free forever. No credit card. Just courage.</p>
+    </div>
+</section>
+
+{% endblock %}

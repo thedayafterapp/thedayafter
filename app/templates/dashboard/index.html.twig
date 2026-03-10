@@ -1,0 +1,404 @@
+{% extends 'base.html.twig' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+{# Floating background circles #}
+<div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    <div class="absolute top-20 right-10 w-64 h-64 rounded-full bg-teal-100/40" style="animation: floatA 14s ease-in-out infinite;"></div>
+    <div class="absolute top-1/3 -left-20 w-80 h-80 rounded-full bg-indigo-100/30" style="animation: floatB 18s ease-in-out infinite;"></div>
+    <div class="absolute bottom-20 right-1/4 w-48 h-48 rounded-full bg-purple-100/30" style="animation: floatA 20s ease-in-out infinite reverse;"></div>
+    <div class="absolute bottom-1/3 left-1/3 w-32 h-32 rounded-full bg-amber-100/40" style="animation: floatB 12s ease-in-out infinite reverse;"></div>
+</div>
+<style>
+    @keyframes floatA {
+        0%, 100% { transform: translate(0, 0); }
+        33%       { transform: translate(20px, -30px); }
+        66%       { transform: translate(-15px, 15px); }
+    }
+    @keyframes floatB {
+        0%, 100% { transform: translate(0, 0); }
+        40%       { transform: translate(-25px, 20px); }
+        70%       { transform: translate(15px, -25px); }
+    }
+</style>
+
+<div class="max-w-6xl mx-auto px-4 py-8" x-data="dashboardApp()" x-init="init()">
+
+    {# Daily quote #}
+    <div class="mb-6 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl px-6 py-4 flex items-start gap-3">
+        <span class="text-2xl mt-0.5">💬</span>
+        <div>
+            <p class="text-gray-800 font-medium italic">"{{ quote.text }}"</p>
+            <p class="text-xs text-gray-400 mt-1">— {{ quote.source }}</p>
+        </div>
+    </div>
+
+    {# Motivation reminder (if set) #}
+    {% if user.motivation %}
+    <div class="mb-6 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4 flex items-start gap-3">
+        <span class="text-2xl mt-0.5">🌟</span>
+        <div>
+            <p class="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1">Why you're doing this</p>
+            <p class="text-amber-900 font-medium">{{ user.motivation }}</p>
+        </div>
+        <a href="{{ path('app_settings') }}" class="ml-auto text-amber-400 hover:text-amber-600 text-xs flex-shrink-0">edit</a>
+    </div>
+    {% endif %}
+
+    {# Streak tracks #}
+    {% if tracks|length == 1 %}
+        {# Single addiction — full-width hero #}
+        {% set track = tracks|first %}
+        {% set trackKey = tracks|keys|first %}
+        <div class="bg-gradient-to-br {{ track.color }} rounded-3xl p-8 mb-6 text-white relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-60 h-60 rounded-full bg-white/5"></div>
+            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div>
+                    <p class="text-white/70 text-sm font-medium mb-1">{{ track.icon }} {{ track.label }}</p>
+                    <div class="flex items-end gap-3">
+                        <span class="text-7xl font-black" id="day-counter-{{ trackKey }}">{{ track.days }}</span>
+                        <span class="text-3xl font-bold text-white/80 mb-2">days</span>
+                    </div>
+                    <p class="text-white/60 text-sm mt-1">Since {{ track.quit_date ? track.quit_date|date('F j, Y \\a\\t g:i A', user.timezone) : 'today' }}</p>
+                    <div class="mt-3 inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5 relative group cursor-default">
+                        <span>{{ user.level >= 5 ? '🔥' : (user.level >= 3 ? '⭐' : '🌱') }}</span>
+                        <span class="font-bold text-sm">Level {{ user.level }}: {{ user.levelName }}</span>
+                        <span class="text-white/50 text-xs">ⓘ</span>
+                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-900 text-white text-xs rounded-xl px-3 py-2.5 leading-relaxed opacity-0 group-hover:opacity-100 transition pointer-events-none z-20">
+                            <p class="font-bold mb-1">Levels are based on days sober</p>
+                            <p class="text-white/70">1d→L2 · 7d→L3 · 30d→L4 · 90d→L5 · 180d→L6 · 365d→L7</p>
+                            <p class="text-white/50 mt-1">XP tracks your activity (check-ins, cravings survived, journals) — separate from your level.</p>
+                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    {% if not checked_in_today %}
+                    <a href="{{ path('app_checkin') }}" class="px-5 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur rounded-xl font-semibold text-sm transition">📊 Check-In</a>
+                    {% endif %}
+                    <a href="{{ path('app_craving') }}" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 rounded-xl font-semibold text-sm transition">🆘 SOS</a>
+                    <a href="{{ path('app_relapse') }}" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 rounded-xl font-semibold text-sm transition">🔄 Setback</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        {# Both addictions — side by side #}
+        <div class="grid md:grid-cols-2 gap-4 mb-6">
+            {% for trackKey, track in tracks %}
+            <div class="bg-gradient-to-br {{ track.color }} rounded-3xl p-6 text-white relative overflow-hidden">
+                <div class="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/5"></div>
+                <div class="relative z-10">
+                    <p class="text-white/70 text-sm font-medium mb-1">{{ track.icon }} {{ track.label }}</p>
+                    <div class="flex items-end gap-2">
+                        <span class="text-5xl font-black" id="day-counter-{{ trackKey }}">{{ track.days }}</span>
+                        <span class="text-xl font-bold text-white/80 mb-1">days</span>
+                    </div>
+                    <p class="text-white/60 text-xs mt-1">Since {{ track.quit_date ? track.quit_date|date('M j, Y \\a\\t g:i A', user.timezone) : 'today' }}</p>
+                    {% if track.money > 0 %}
+                    <p class="text-white/80 text-sm font-semibold mt-2">💰 {{ user.currency }} {{ track.money|number_format(0) }} saved</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="flex flex-wrap gap-3 mb-6">
+            {% if not checked_in_today %}
+            <a href="{{ path('app_checkin') }}" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-semibold text-sm transition">📊 Daily Check-In</a>
+            {% endif %}
+            <a href="{{ path('app_craving') }}" class="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold text-sm transition">🆘 I Need Help Now</a>
+            <a href="{{ path('app_relapse') }}" class="px-5 py-2.5 bg-orange-50 hover:bg-orange-100 text-orange-600 border border-orange-200 rounded-xl font-semibold text-sm transition">🔄 Setback</a>
+            <div class="relative group cursor-default flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2">
+                <span class="text-amber-500">⚡</span>
+                <span class="text-amber-700 font-bold text-sm">{{ user.totalXp }} XP · Level {{ user.level }}: {{ user.levelName }}</span>
+                <span class="text-amber-400 text-xs">ⓘ</span>
+                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-900 text-white text-xs rounded-xl px-3 py-2.5 leading-relaxed opacity-0 group-hover:opacity-100 transition pointer-events-none z-20">
+                    <p class="font-bold mb-1">Two separate systems</p>
+                    <p class="text-white/70"><span class="text-amber-400">⚡ XP</span> — earned by check-ins, surviving cravings, journaling.</p>
+                    <p class="text-white/70 mt-1"><span class="text-teal-400">Level</span> — based on days sober: 1d→L2 · 7d→L3 · 30d→L4 · 90d→L5 · 180d→L6 · 365d→L7</p>
+                    <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Stats row #}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+            <div class="text-3xl font-black text-teal-600">{{ user.getDaysSinceQuit() }}</div>
+            <div class="text-xs font-medium text-gray-500 mt-1">Days Clean</div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center relative group">
+            <div class="text-3xl font-black text-amber-500">{{ user.cravingsSurvived }}</div>
+            <div class="text-xs font-medium text-gray-500 mt-1 flex items-center justify-center gap-1">
+                Cravings Survived
+                <span class="text-gray-400 cursor-help">ⓘ</span>
+            </div>
+            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-gray-900 text-white text-xs rounded-xl px-3 py-2.5 leading-relaxed opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+                Each time you felt a craving, hit SOS, then clicked "I Survived It" — that counts. Every one rewires your brain. 🧠
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+            </div>
+        </div>
+        <a href="{{ path('app_settings') }}" class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center hover:border-green-300 transition group relative">
+            <div class="text-3xl font-black text-green-600">
+                {% set totalSaved = user.getMoneySaved() %}
+                {{ totalSaved > 0 ? totalSaved|number_format(0) : '—' }}
+            </div>
+            <div class="text-xs font-medium text-gray-500 mt-1">{{ user.currency }} Saved</div>
+            <span class="absolute top-2 right-2 text-gray-300 group-hover:text-gray-500 text-xs">✏️</span>
+        </a>
+        <a href="{{ path('app_achievements') }}" class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center relative group hover:border-purple-300 transition">
+            <div class="text-3xl font-black text-purple-600">{{ user.userAchievements|length }}</div>
+            <div class="text-xs font-medium text-gray-500 mt-1 flex items-center justify-center gap-1">
+                Achievements
+                <span class="text-gray-400 cursor-help">ⓘ</span>
+            </div>
+            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-gray-900 text-white text-xs rounded-xl px-3 py-2.5 leading-relaxed opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+                Badges unlocked by hitting milestones — streaks, journals, cravings survived, money saved. Each earns XP. 🏆
+                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+            </div>
+        </a>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+
+            {# Progress to next milestone #}
+            {% if progress.next_days %}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="font-bold text-gray-900 mb-4">🎯 Next Milestone</h2>
+                <div class="flex items-center justify-between mb-2 text-sm">
+                    <span class="text-gray-600">{{ progress.current_days }} / {{ progress.next_days }} days</span>
+                    <span class="font-bold text-brand-600">{{ progress.days_left }} days to go</span>
+                </div>
+                <div class="h-4 bg-gray-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-teal-400 to-brand-500 rounded-full transition-all duration-1000"
+                         style="width: {{ progress.progress_pct }}%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">{{ progress.progress_pct }}% toward your {{ progress.next_days }}-day milestone</p>
+            </div>
+            {% endif %}
+
+            {# Weekly review #}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="font-bold text-gray-900 mb-4">📅 This Week</h2>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div class="text-2xl font-black text-brand-600">{{ weekly_stats.checkin_count }}</div>
+                        <div class="text-xs text-gray-500 mt-1">Check-ins</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black {{ weekly_stats.avg_mood >= 7 ? 'text-green-600' : (weekly_stats.avg_mood >= 4 ? 'text-amber-500' : 'text-red-500') }}">
+                            {{ weekly_stats.avg_mood ?? '—' }}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">Avg mood /10</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black {{ weekly_stats.avg_craving <= 3 ? 'text-green-600' : (weekly_stats.avg_craving <= 6 ? 'text-amber-500' : 'text-red-500') }}">
+                            {{ weekly_stats.avg_craving ?? '—' }}
+                        </div>
+                        <div class="text-xs text-gray-500 mt-1">Avg craving /10</div>
+                    </div>
+                </div>
+                {% if weekly_stats.checkin_count == 0 %}
+                <p class="text-sm text-gray-400 text-center mt-3">No check-ins yet this week. <a href="{{ path('app_checkin') }}" class="text-brand-600 hover:underline">Do one now →</a></p>
+                {% endif %}
+            </div>
+
+            {# Trigger pattern analysis #}
+            {% if trigger_analysis %}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="font-bold text-gray-900 mb-1">🧠 Your Patterns</h2>
+                <p class="text-xs text-gray-400 mb-4">Based on your last {{ trigger_analysis.total }} check-ins</p>
+                <div class="grid sm:grid-cols-2 gap-4">
+                    {% if trigger_analysis.top_triggers %}
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Top Triggers</p>
+                        <div class="space-y-2">
+                            {% for trigger, count in trigger_analysis.top_triggers %}
+                            <div class="flex items-center gap-2">
+                                <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-orange-400 rounded-full"
+                                         {% set pct = (count / trigger_analysis.total * 100 * 3)|round %}
+                                         style="width: {{ pct > 100 ? 100 : pct }}%"></div>
+                                </div>
+                                <span class="text-xs text-gray-600 capitalize w-24 text-right">{{ trigger }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if trigger_analysis.worst_day %}
+                    <div class="flex flex-col justify-center">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Hardest Day</p>
+                        <div class="bg-red-50 rounded-xl p-3">
+                            <p class="font-bold text-red-700">{{ trigger_analysis.worst_day }}</p>
+                            <p class="text-xs text-red-500 mt-0.5">{{ trigger_analysis.worst_day_pct }}% of {{ trigger_analysis.worst_day }} check-ins show high cravings</p>
+                            <p class="text-xs text-gray-500 mt-1">Plan ahead — have a strategy ready for this day.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {# Health timelines (one per track) #}
+            {% for trackKey, track in tracks %}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="font-bold text-gray-900 mb-5 flex items-center gap-2">
+                    {{ track.icon }} {{ track.label }} — Body Healing
+                </h2>
+                <div class="space-y-3">
+                    {% for milestone in track.milestones %}
+                    <div class="flex items-start gap-3 {{ milestone.achieved ? 'opacity-100' : 'opacity-35' }}">
+                        <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs flex-shrink-0
+                                    {{ milestone.achieved ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-400' }}">
+                            {{ milestone.achieved ? '✓' : '○' }}
+                        </div>
+                        <div>
+                            <span class="font-semibold text-sm {{ milestone.achieved ? 'text-teal-700' : 'text-gray-400' }}">{{ milestone.label }}</span>
+                            {% if milestone.achieved %}<span class="ml-2 text-xs bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full">✓ Done</span>{% endif %}
+                            <p class="text-xs text-gray-500 mt-0.5">{{ milestone.desc }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {# Mood chart #}
+            {% if recent_checkins is not empty %}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="font-bold text-gray-900 mb-4">📊 Recent Mood</h2>
+                <div class="flex items-end gap-2 h-24">
+                    {% for checkin in recent_checkins|reverse %}
+                    <div class="flex-1 flex flex-col items-center gap-1">
+                        <div class="w-full rounded-t-lg"
+                             style="height: {{ (checkin.mood / 10 * 100)|round }}%; background: linear-gradient(to top, #14b8a6, #6366f1); min-height: 4px;"
+                             title="Mood {{ checkin.mood }}/10 on {{ checkin.createdAt|date('M j') }}"></div>
+                        <span class="text-xs text-gray-400">{{ checkin.createdAt|date('j') }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        {# Right sidebar #}
+        <div class="space-y-6">
+
+            {# Setback card #}
+            <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-5 shadow-sm border border-orange-100">
+                <div class="flex items-start gap-4">
+                    <div class="text-3xl">💙</div>
+                    <div class="flex-1">
+                        <h3 class="font-bold text-gray-800 text-sm">Had a setback?</h3>
+                        <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">It happens. Your XP and achievements stay — only the streak resets. Honesty is part of recovery.</p>
+                        <div class="mt-3 flex items-center gap-3">
+                            <a href="{{ path('app_relapse') }}"
+                               class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-red-50 text-red-600 border border-red-200 hover:border-red-300 rounded-xl text-sm font-semibold transition shadow-sm">
+                                🔄 Log a Setback
+                            </a>
+                            {% if user.relapseLogs is not empty %}
+                            <a href="{{ path('app_relapse_history') }}"
+                               class="text-xs text-gray-400 hover:text-gray-600 transition">
+                                View history ({{ user.relapseLogs|length }}) →
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="font-bold text-gray-900 mb-4">Quick Actions</h2>
+                <div class="space-y-2">
+                    {% if not checked_in_today %}
+                    <a href="{{ path('app_checkin') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-teal-50 transition group">
+                        <span class="w-9 h-9 bg-teal-100 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">📊</span>
+                        <div><div class="text-sm font-semibold text-gray-800">Daily Check-In</div><div class="text-xs text-teal-600 font-medium">+50 XP</div></div>
+                    </a>
+                    {% else %}
+                    <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50">
+                        <span class="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center">✅</span>
+                        <div><div class="text-sm font-medium text-gray-500">Checked in today</div><div class="text-xs text-gray-400">Come back tomorrow</div></div>
+                    </div>
+                    {% endif %}
+                    <a href="{{ path('app_journal') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 transition group">
+                        <span class="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">📝</span>
+                        <div><div class="text-sm font-semibold text-gray-800">Journal</div><div class="text-xs text-purple-600 font-medium">+30 XP</div></div>
+                    </a>
+                    <a href="{{ path('app_craving') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 transition group">
+                        <span class="w-9 h-9 bg-red-100 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">🆘</span>
+                        <div><div class="text-sm font-semibold text-gray-800">SOS — Craving Help</div><div class="text-xs text-red-600 font-medium">+100 XP if you survive</div></div>
+                    </a>
+                    <a href="{{ path('app_achievements') }}" class="flex items-center gap-3 p-3 rounded-xl hover:bg-amber-50 transition group">
+                        <span class="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center text-lg group-hover:scale-110 transition">🏆</span>
+                        <div><div class="text-sm font-semibold text-gray-800">Achievements</div><div class="text-xs text-amber-600 font-medium">{{ user.userAchievements|length }} earned</div></div>
+                    </a>
+                </div>
+            </div>
+
+            {% if user.userAchievements is not empty %}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="font-bold text-gray-900 mb-4">Recent Achievements</h2>
+                <div class="space-y-3">
+                    {% for ua in user.userAchievements|slice(-3)|reverse %}
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">{{ ua.achievement.icon }}</span>
+                        <div>
+                            <div class="text-sm font-semibold text-gray-800">{{ ua.achievement.name }}</div>
+                            <div class="text-xs text-gray-500">{{ ua.earnedAt|date('M j') }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{{ path('app_achievements') }}" class="block mt-4 text-center text-sm text-brand-600 hover:underline font-medium">View all →</a>
+            </div>
+            {% endif %}
+
+            {% if recent_journals is not empty %}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <h2 class="font-bold text-gray-900 mb-4">Recent Journal</h2>
+                <div class="space-y-3">
+                    {% for entry in recent_journals %}
+                    <div class="border-l-2 border-purple-200 pl-3">
+                        <div class="text-xs text-gray-400">{{ entry.createdAt|date('M j') }}</div>
+                        <p class="text-sm text-gray-700 line-clamp-2">{{ entry.content|slice(0, 100) }}{% if entry.content|length > 100 %}…{% endif %}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{{ path('app_journal') }}" class="block mt-4 text-center text-sm text-brand-600 hover:underline font-medium">Open journal →</a>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function dashboardApp() {
+    return {
+        init() {
+            {% for trackKey, track in tracks %}
+            this.animateCounter('day-counter-{{ trackKey }}', 0, {{ track.days }}, 1200);
+            {% endfor %}
+        },
+        animateCounter(id, from, to, duration) {
+            const el = document.getElementById(id);
+            if (!el || from === to) return;
+            const start = performance.now();
+            const update = (now) => {
+                const p = Math.min((now - start) / duration, 1);
+                const eased = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.round(from + (to - from) * eased);
+                if (p < 1) requestAnimationFrame(update);
+            };
+            requestAnimationFrame(update);
+        }
+    };
+}
+</script>
+{% endblock %}

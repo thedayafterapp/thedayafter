@@ -1,0 +1,204 @@
+{% extends 'base.html.twig' %}
+{% block title %}Settings{% endblock %}
+
+{% block body %}
+<div class="max-w-xl mx-auto px-4 py-10">
+    <div class="text-center mb-8">
+        <a href="{{ path('app_dashboard') }}" class="text-gray-500 hover:text-gray-700 text-sm">← Dashboard</a>
+        <div class="text-4xl mt-4 mb-2">⚙️</div>
+        <h1 class="text-3xl font-black text-gray-900">Settings</h1>
+    </div>
+
+    <form method="POST" action="{{ path('app_settings_save') }}"
+          class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6"
+          x-data="{ type: '{{ user.addictionType }}' }">
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">What are you working on?</label>
+            <div class="grid grid-cols-3 gap-2">
+                {% for val, label in {'alcohol': '🍷 Alcohol', 'cigarettes': '🚬 Cigarettes', 'both': '💪 Both'} %}
+                <label class="cursor-pointer">
+                    <input type="radio" name="addiction_type" value="{{ val }}" x-model="type" class="sr-only" {{ user.addictionType == val ? 'checked' : '' }}>
+                    <div :class="type==='{{ val }}' ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-gray-200 text-gray-600'"
+                         class="border-2 rounded-xl p-2.5 text-center text-sm font-medium transition cursor-pointer">
+                        {{ label }}
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# Currency #}
+        <div x-show="type === 'alcohol' || type === 'cigarettes' || type === 'both'">
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Currency <span class="font-normal text-gray-400">— used to calculate money saved</span></label>
+            <select name="currency" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 transition">
+                {% for val, label in {'USD': 'USD ($)', 'EUR': 'EUR (€)', 'GBP': 'GBP (£)', 'CAD': 'CAD ($)', 'AUD': 'AUD ($)'} %}
+                <option value="{{ val }}" {{ user.currency == val ? 'selected' : '' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# Alcohol track #}
+        <div x-show="type === 'alcohol' || type === 'both'" class="space-y-4 p-4 bg-red-50 border border-red-100 rounded-xl">
+            <p class="text-sm font-semibold text-red-700">🍷 Alcohol Track</p>
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Alcohol-free since</label>
+                    <input type="datetime-local" name="alcohol_quit_date"
+                           value="{{ user.alcoholQuitDate ? user.alcoholQuitDate|date('Y-m-d\\TH:i', user.timezone) : (user.quitDate ? user.quitDate|date('Y-m-d\\TH:i', user.timezone) : '') }}"
+                           class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Daily spend</label>
+                    <input type="number" name="alcohol_daily_cost" step="0.01" min="0"
+                           value="{{ user.alcoholDailyCost ?? user.dailyCost ?? '' }}"
+                           class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                           placeholder="0.00">
+                </div>
+            </div>
+            {% if user.getMoneySaved('alcohol') > 0 %}
+            <p class="text-xs text-green-600 font-medium">💰 {{ user.currency }} {{ user.getMoneySaved('alcohol')|number_format(2) }} saved so far</p>
+            {% endif %}
+        </div>
+
+        {# Cigarettes track #}
+        <div x-show="type === 'cigarettes' || type === 'both'" class="space-y-4 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+            <p class="text-sm font-semibold text-amber-700">🚬 Cigarettes Track</p>
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Smoke-free since</label>
+                    <input type="datetime-local" name="cigarettes_quit_date"
+                           value="{{ user.cigarettesQuitDate ? user.cigarettesQuitDate|date('Y-m-d\\TH:i', user.timezone) : (user.quitDate ? user.quitDate|date('Y-m-d\\TH:i', user.timezone) : '') }}"
+                           class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Daily spend</label>
+                    <input type="number" name="cigarettes_daily_cost" step="0.01" min="0"
+                           value="{{ user.cigarettesDailyCost ?? user.dailyCost ?? '' }}"
+                           class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-400 text-sm"
+                           placeholder="0.00">
+                </div>
+            </div>
+            {% if user.getMoneySaved('cigarettes') > 0 %}
+            <p class="text-xs text-green-600 font-medium">💰 {{ user.currency }} {{ user.getMoneySaved('cigarettes')|number_format(2) }} saved so far</p>
+            {% endif %}
+        </div>
+
+        {# Timezone #}
+        <div x-data="tzPicker('{{ user.timezone }}')">
+            {# Hidden input is what actually gets submitted #}
+            <input type="hidden" name="timezone" x-model="tz">
+            <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-sm font-semibold text-gray-700">Timezone</label>
+                <button type="button" @click="detect()"
+                        class="text-xs text-brand-600 hover:underline">📍 Auto-detect</button>
+            </div>
+            {# Select drives tz visually; hidden input submits it #}
+            <select @change="tz = $event.target.value" x-ref="sel"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 transition text-sm">
+                {% set timezones = {
+                    'UTC': 'UTC',
+                    'America/New_York': 'America — New York (ET)',
+                    'America/Chicago': 'America — Chicago (CT)',
+                    'America/Denver': 'America — Denver (MT)',
+                    'America/Los_Angeles': 'America — Los Angeles (PT)',
+                    'America/Phoenix': 'America — Phoenix (MST)',
+                    'America/Anchorage': 'America — Anchorage (AKT)',
+                    'America/Honolulu': 'America — Honolulu (HST)',
+                    'America/Toronto': 'America — Toronto (ET)',
+                    'America/Vancouver': 'America — Vancouver (PT)',
+                    'America/Mexico_City': 'America — Mexico City (CST)',
+                    'America/Sao_Paulo': 'America — São Paulo (BRT)',
+                    'America/Argentina/Buenos_Aires': 'America — Buenos Aires (ART)',
+                    'America/Bogota': 'America — Bogotá (COT)',
+                    'America/Lima': 'America — Lima (PET)',
+                    'Europe/London': 'Europe — London (GMT/BST)',
+                    'Europe/Lisbon': 'Europe — Lisbon (WET)',
+                    'Europe/Paris': 'Europe — Paris (CET)',
+                    'Europe/Berlin': 'Europe — Berlin (CET)',
+                    'Europe/Rome': 'Europe — Rome (CET)',
+                    'Europe/Madrid': 'Europe — Madrid (CET)',
+                    'Europe/Amsterdam': 'Europe — Amsterdam (CET)',
+                    'Europe/Stockholm': 'Europe — Stockholm (CET)',
+                    'Europe/Warsaw': 'Europe — Warsaw (CET)',
+                    'Europe/Zurich': 'Europe — Zurich (CET)',
+                    'Europe/Athens': 'Europe — Athens (EET)',
+                    'Europe/Helsinki': 'Europe — Helsinki (EET)',
+                    'Europe/Istanbul': 'Europe — Istanbul (TRT)',
+                    'Europe/Moscow': 'Europe — Moscow (MSK)',
+                    'Europe/Kiev': 'Europe — Kyiv (EET)',
+                    'Asia/Dubai': 'Asia — Dubai (GST)',
+                    'Asia/Kolkata': 'Asia — Kolkata (IST)',
+                    'Asia/Dhaka': 'Asia — Dhaka (BST)',
+                    'Asia/Bangkok': 'Asia — Bangkok (ICT)',
+                    'Asia/Singapore': 'Asia — Singapore (SGT)',
+                    'Asia/Hong_Kong': 'Asia — Hong Kong (HKT)',
+                    'Asia/Shanghai': 'Asia — Shanghai (CST)',
+                    'Asia/Tokyo': 'Asia — Tokyo (JST)',
+                    'Asia/Seoul': 'Asia — Seoul (KST)',
+                    'Asia/Jakarta': 'Asia — Jakarta (WIB)',
+                    'Australia/Perth': 'Australia — Perth (AWST)',
+                    'Australia/Brisbane': 'Australia — Brisbane (AEST)',
+                    'Australia/Sydney': 'Australia — Sydney (AEDT)',
+                    'Australia/Melbourne': 'Australia — Melbourne (AEDT)',
+                    'Pacific/Auckland': 'Pacific — Auckland (NZST)',
+                    'Africa/Cairo': 'Africa — Cairo (EET)',
+                    'Africa/Johannesburg': 'Africa — Johannesburg (SAST)',
+                    'Africa/Lagos': 'Africa — Lagos (WAT)'
+                } %}
+                {% for val, label in timezones %}
+                <option value="{{ val }}" {{ user.timezone == val ? 'selected' : '' }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {# Shows current value — useful when detected tz isn't in the list above #}
+            <p class="text-xs text-gray-400 mt-1">
+                Current: <span class="font-medium text-gray-600" x-text="tz"></span>
+            </p>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+                Why are you doing this?
+                <span class="font-normal text-gray-400">(shown on your dashboard and SOS page as a reminder)</span>
+            </label>
+            <textarea name="motivation" rows="2"
+                      class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 resize-none text-sm"
+                      placeholder="For my kids. For my health. Because I deserve better…">{{ user.motivation }}</textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-brand-600 to-teal-600 text-white rounded-xl font-bold text-lg hover:opacity-90 transition">
+            Save Changes
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function tzPicker(current) {
+    return {
+        tz: current || 'UTC',
+        syncSelect(value) {
+            const sel = this.$refs.sel;
+            let opt = Array.from(sel.options).find(o => o.value === value);
+            if (!opt) {
+                opt = new Option(value, value);
+                sel.prepend(opt);
+            }
+            sel.value = value;
+        },
+        init() {
+            this.$nextTick(() => this.syncSelect(this.tz));
+        },
+        detect() {
+            try {
+                const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                if (!detected) return;
+                this.tz = detected;
+                this.syncSelect(detected);
+            } catch(e) {}
+        }
+    };
+}
+</script>
+{% endblock %}
