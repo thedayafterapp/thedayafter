@@ -90,7 +90,7 @@
                 </div>
 
                 {# Currency — shown only when a track is selected #}
-                <div x-show="type === 'alcohol' || type === 'cigarettes' || type === 'both'">
+                <div x-show="type === 'alcohol' || type === 'cigarettes' || type === 'both' || type === 'cannabis'">
                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Currency <span class="font-normal text-gray-400">— used to calculate money saved</span></label>
                     <select name="currency" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 transition">
                         <option value="USD">USD ($)</option>
