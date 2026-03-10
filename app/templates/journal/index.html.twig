@@ -78,7 +78,7 @@ CBT prompt: What thought or situation triggered any cravings? What would you tel
                                 {% if entry.mood %}
                                 <span class="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 capitalize">{{ entry.mood }}</span>
                                 {% endif %}
-                                <span class="text-xs text-gray-400">{{ entry.createdAt|date('F j, Y · g:i a') }}</span>
+                                <span class="text-xs text-gray-400">{{ entry.createdAt|date('F j, Y · g:i a', user.timezone) }}</span>
                             </div>
                             {% if entry.title %}
                             <h3 class="font-bold text-gray-900 mt-1">{{ entry.title }}</h3>
@@ -87,11 +87,20 @@ CBT prompt: What thought or situation triggered any cravings? What would you tel
                                 {{ entry.content|slice(0, 150) }}{% if entry.content|length > 150 %}…{% endif %}
                             </p>
                         </div>
-                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform"
-                             :class="expanded ? 'rotate-180' : ''"
-                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <form method="POST" action="{{ path('app_journal_delete', {id: entry.id}) }}"
+                                  onsubmit="return confirm('Delete this entry?')" @click.stop>
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete_journal_' ~ entry.id) }}">
+                                <button type="submit" class="text-gray-300 hover:text-red-400 transition" title="Delete">
+                                    🗑
+                                </button>
+                            </form>
+                            <svg class="w-4 h-4 text-gray-400 transition-transform"
+                                 :class="expanded ? 'rotate-180' : ''"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
                     </div>
                 </div>
                 <div x-show="expanded" x-cloak class="px-5 pb-5">

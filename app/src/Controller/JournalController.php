@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Repository\JournalEntryRepository;
 use App\Service\AchievementService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -66,6 +67,31 @@ class JournalController extends AbstractController
         }
 
         $this->addFlash('success', 'Journal entry saved! +30 XP 📝');
+        return $this->redirectToRoute('app_journal');
+    }
+
+    #[Route('/delete/{id}', name: 'app_journal_delete', methods: ['POST'])]
+    public function delete(
+        JournalEntry $entry,
+        Request $request,
+        EntityManagerInterface $em,
+        CsrfTokenManagerInterface $csrf,
+    ): Response {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if ($entry->getUser() !== $user) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$csrf->isTokenValid(new CsrfToken('delete_journal_' . $entry->getId(), $request->request->get('_token')))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $em->remove($entry);
+        $em->flush();
+
+        $this->addFlash('success', 'Entry deleted.');
         return $this->redirectToRoute('app_journal');
     }
 }
