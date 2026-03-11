@@ -55,7 +55,7 @@ class MoodLogController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'Mood logged.');
-        return $this->redirectToRoute('app_dashboard');
+        return $this->redirectToRoute('app_mood_history');
     }
 
     #[Route('/mood/{id}/update-note', name: 'app_mood_update_note', methods: ['POST'])]
