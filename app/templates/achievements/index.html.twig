@@ -22,6 +22,16 @@
                 <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
             </div>
         </div>
+        {% if earned|length > 0 %}
+        <form method="POST" action="{{ path('app_achievements_reset') }}"
+              class="mt-4"
+              onsubmit="return confirm('Reset all achievements? This cannot be undone.')">
+            <input type="hidden" name="_token" value="{{ csrf_token('reset_achievements') }}">
+            <button type="submit" class="text-xs text-gray-400 hover:text-red-400 transition">
+                Reset all achievements
+            </button>
+        </form>
+        {% endif %}
     </div>
 
 
