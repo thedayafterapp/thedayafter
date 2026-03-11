@@ -39,6 +39,9 @@ php bin/console app:seed-achievements --no-interaction 2>/dev/null || true
 echo "==> Warming cache..."
 php bin/console cache:warmup --no-interaction 2>/dev/null || true
 
+echo "==> Fixing permissions..."
+chown -R www-data:www-data var/
+
 echo ""
 echo "==> App ready at http://localhost:8080"
 echo ""
