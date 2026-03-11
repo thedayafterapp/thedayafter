@@ -335,3 +335,22 @@
 </section>
 
 {% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const nav = document.getElementById('public-nav');
+    if (!nav) return;
+    function update() {
+        const y = document.body.scrollTop || document.documentElement.scrollTop || 0;
+        nav.style.background           = y > 700 ? 'rgba(0,0,0,0.75)' : '';
+        nav.style.backdropFilter       = y > 700 ? 'blur(8px)' : '';
+        nav.style.webkitBackdropFilter = y > 700 ? 'blur(8px)' : '';
+        nav.style.webkitBackdropFilter = y > 700 ? 'blur(8px)' : '';
+    }
+    document.body.addEventListener('scroll', update, { passive: true });
+    document.addEventListener('scroll', update, { passive: true });
+    update();
+})();
+</script>
+{% endblock %}

@@ -77,7 +77,7 @@
     </style>
     {% block head %}{% endblock %}
 </head>
-<body class="h-full bg-gray-50 text-gray-900 overflow-x-hidden">
+<body class="h-full bg-gray-50 text-gray-900 overflow-x-hidden" style="scroll-behavior: smooth;">
 
 {# Flash messages #}
 {% if app.flashes|length %}
@@ -236,7 +236,7 @@
 </div>
 {% else %}
 {# Public nav #}
-<nav class="absolute top-0 left-0 right-0 z-40">
+<nav id="public-nav" class="fixed top-0 left-0 right-0 z-40 transition-all duration-300">
     <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-16">
         <a href="{{ path('app_home') }}" class="flex items-center gap-2 text-white font-bold text-xl">
             <span class="text-2xl">🌿</span> TheDayAfter
