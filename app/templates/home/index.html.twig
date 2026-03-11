@@ -343,10 +343,10 @@
     if (!nav) return;
     function update() {
         const y = document.body.scrollTop || document.documentElement.scrollTop || 0;
-        nav.style.background           = y > 20 ? 'rgba(0,0,0,0.75)' : '';
-        nav.style.backdropFilter       = y > 20 ? 'blur(8px)' : '';
-        nav.style.webkitBackdropFilter = y > 20 ? 'blur(8px)' : '';
-        nav.style.webkitBackdropFilter = y > 20 ? 'blur(8px)' : '';
+        nav.style.background           = y > 10 ? 'rgba(0,0,0,0.75)' : '';
+        nav.style.backdropFilter       = y > 10 ? 'blur(8px)' : '';
+        nav.style.webkitBackdropFilter = y > 10 ? 'blur(8px)' : '';
+        nav.style.webkitBackdropFilter = y > 10 ? 'blur(8px)' : '';
     }
     document.body.addEventListener('scroll', update, { passive: true });
     document.addEventListener('scroll', update, { passive: true });
