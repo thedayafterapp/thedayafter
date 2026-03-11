@@ -70,6 +70,40 @@ class JournalController extends AbstractController
         return $this->redirectToRoute('app_journal');
     }
 
+    #[Route('/edit/{id}', name: 'app_journal_edit', methods: ['POST'])]
+    public function edit(
+        JournalEntry $entry,
+        Request $request,
+        EntityManagerInterface $em,
+        CsrfTokenManagerInterface $csrf,
+    ): Response {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if ($entry->getUser() !== $user) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$csrf->isTokenValid(new CsrfToken('edit_journal_' . $entry->getId(), $request->request->get('_token')))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $content = trim($request->request->get('content', ''));
+        if (!$content) {
+            $this->addFlash('error', 'Journal entry cannot be empty.');
+            return $this->redirectToRoute('app_journal');
+        }
+
+        $entry->setTitle($request->request->get('title') ?: null)
+              ->setContent($content)
+              ->setMood($request->request->get('mood') ?: null);
+
+        $em->flush();
+
+        $this->addFlash('success', 'Entry updated.');
+        return $this->redirectToRoute('app_journal');
+    }
+
     #[Route('/delete/{id}', name: 'app_journal_delete', methods: ['POST'])]
     public function delete(
         JournalEntry $entry,

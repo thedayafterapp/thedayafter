@@ -76,6 +76,7 @@ class MoodLogController extends AbstractController
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
 
+        $log->setMood((int) $request->request->get('mood', $log->getMood()));
         $log->setNote($request->request->get('note') ?: null);
         $em->flush();
 

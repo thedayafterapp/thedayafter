@@ -108,28 +108,90 @@
         <h2 class="font-bold text-gray-900 mb-4">Recent Check-Ins</h2>
         <div class="space-y-3">
             {% for c in recent %}
-            <div class="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4">
-                <div class="text-2xl">{{ c.moodEmoji }}</div>
-                <div class="flex-1">
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm font-medium text-gray-700">Mood: {{ c.mood }}/10</span>
-                        <span class="text-sm text-gray-400">Craving: {{ c.cravingIntensity }}/10</span>
-                        {% if c.triggers %}
-                        <span class="text-xs text-gray-400">{{ c.triggers|join(', ') }}</span>
+            <div class="bg-white rounded-xl border border-gray-100 overflow-hidden"
+                 x-data="{ editing: false, mood: {{ c.mood }}, craving: {{ c.cravingIntensity }}, triggers: {{ c.triggers|json_encode }},
+                           moodEmoji() { const m=parseInt(this.mood); if(m>=9)return'😄'; if(m>=7)return'😊'; if(m>=5)return'😐'; if(m>=3)return'😔'; return'😢'; } }">
+
+                {# View row #}
+                <div class="p-4 flex items-center gap-4">
+                    <div class="text-2xl" x-text="editing ? moodEmoji() : '{{ c.moodEmoji }}'"></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <span class="text-sm font-medium text-gray-700">Mood: {{ c.mood }}/10</span>
+                            <span class="text-sm text-gray-400">Craving: {{ c.cravingIntensity }}/10</span>
+                            {% if c.triggers %}
+                            <span class="text-xs text-gray-400">{{ c.triggers|join(', ') }}</span>
+                            {% endif %}
+                        </div>
+                        {% if c.notes %}
+                        <p class="text-xs text-gray-500 mt-1">{{ c.notes }}</p>
                         {% endif %}
                     </div>
-                    {% if c.notes %}
-                    <p class="text-xs text-gray-500 mt-1">{{ c.notes }}</p>
-                    {% endif %}
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <div class="text-xs text-gray-400">{{ c.createdAt|date('M j · g:i a', user.timezone) }}</div>
+                        <button type="button" @click="editing = !editing"
+                                class="text-gray-300 hover:text-indigo-400 transition" title="Edit">✏️</button>
+                        <form method="POST" action="{{ path('app_checkin_delete', {id: c.id}) }}"
+                              onsubmit="return confirm('Delete this check-in?')">
+                            <input type="hidden" name="_token" value="{{ csrf_token('delete_checkin_' ~ c.id) }}">
+                            <button type="submit" class="text-gray-300 hover:text-red-400 transition" title="Delete">🗑</button>
+                        </form>
+                    </div>
                 </div>
-                <div class="flex items-center gap-3">
-                    <div class="text-xs text-gray-400">{{ c.createdAt|date('M j · g:i a', user.timezone) }}</div>
-                    <form method="POST" action="{{ path('app_checkin_delete', {id: c.id}) }}"
-                          onsubmit="return confirm('Delete this check-in?')">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete_checkin_' ~ c.id) }}">
-                        <button type="submit" class="text-gray-300 hover:text-red-400 transition" title="Delete">
-                            🗑
-                        </button>
+
+                {# Edit form #}
+                <div x-show="editing" x-cloak class="border-t border-gray-100 px-4 pb-4 pt-3">
+                    <form method="POST" action="{{ path('app_checkin_edit', {id: c.id}) }}" class="space-y-4">
+                        <input type="hidden" name="_token" value="{{ csrf_token('edit_checkin_' ~ c.id) }}">
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">
+                                Mood <span x-text="moodEmoji()"></span>
+                            </label>
+                            <input type="range" name="mood" min="1" max="10" x-model="mood"
+                                   class="w-full h-2 rounded-full appearance-none bg-gradient-to-r from-red-400 to-green-400 cursor-pointer">
+                            <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                <span>1 — Rock bottom</span>
+                                <span class="font-bold text-gray-700" x-text="mood + '/10'"></span>
+                                <span>10 — Incredible</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Craving intensity</label>
+                            <input type="range" name="craving_intensity" min="0" max="10" x-model="craving"
+                                   class="w-full h-2 rounded-full appearance-none bg-gradient-to-r from-green-400 to-red-400 cursor-pointer">
+                            <div class="flex justify-between text-xs text-gray-400 mt-1">
+                                <span>0 — None</span>
+                                <span class="font-bold" :class="craving >= 7 ? 'text-red-600' : craving >= 4 ? 'text-amber-600' : 'text-green-600'" x-text="craving + '/10'"></span>
+                                <span>10 — Overwhelming</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Triggers</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                {% for trigger in ['hungry', 'angry', 'lonely', 'tired', 'stressed', 'bored', 'social pressure', 'celebrating'] %}
+                                <label class="cursor-pointer">
+                                    <input type="checkbox" name="triggers[]" value="{{ trigger }}" x-model="triggers" class="sr-only">
+                                    <div :class="triggers.includes('{{ trigger }}') ? 'border-brand-500 bg-brand-50 text-brand-700 font-semibold' : 'border-gray-200 text-gray-600'"
+                                         class="border-2 rounded-xl p-2 text-center text-xs capitalize transition cursor-pointer hover:border-brand-300">
+                                        {{ trigger|capitalize }}
+                                    </div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <textarea name="notes" rows="2" placeholder="Notes (optional)"
+                                      class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 resize-none text-sm">{{ c.notes }}</textarea>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button type="submit" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition">Save</button>
+                            <button type="button" @click="editing = false" class="px-4 py-2 text-sm text-gray-400 hover:text-gray-600 transition">Cancel</button>
+                        </div>
                     </form>
                 </div>
             </div>

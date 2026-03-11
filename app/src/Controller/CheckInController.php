@@ -72,6 +72,35 @@ class CheckInController extends AbstractController
         return $this->redirectToRoute('app_checkin');
     }
 
+    #[Route('/edit/{id}', name: 'app_checkin_edit', methods: ['POST'])]
+    public function edit(
+        CheckIn $checkIn,
+        Request $request,
+        EntityManagerInterface $em,
+        CsrfTokenManagerInterface $csrf,
+    ): Response {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if ($checkIn->getUser() !== $user) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$csrf->isTokenValid(new CsrfToken('edit_checkin_' . $checkIn->getId(), $request->request->get('_token')))) {
+            throw $this->createAccessDeniedException('Invalid CSRF token.');
+        }
+
+        $checkIn->setMood((int) $request->request->get('mood', 5))
+                ->setCravingIntensity((int) $request->request->get('craving_intensity', 0))
+                ->setTriggers($request->request->all('triggers') ?? [])
+                ->setNotes($request->request->get('notes') ?: null);
+
+        $em->flush();
+
+        $this->addFlash('success', 'Check-in updated.');
+        return $this->redirectToRoute('app_checkin');
+    }
+
     #[Route('/delete/{id}', name: 'app_checkin_delete', methods: ['POST'])]
     public function delete(
         CheckIn $checkIn,

@@ -10,16 +10,51 @@
         <p class="text-gray-500 text-sm mt-1">{{ logs|length }} quick check{{ logs|length == 1 ? '' : 's' }} logged</p>
     </div>
 
+    {# Add entry #}
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-6"
+         x-data="{ mood: 5, open: false, moodEmoji() { const m=parseInt(this.mood); if(m>=9)return'😄'; if(m>=7)return'😊'; if(m>=5)return'😐'; if(m>=3)return'😔'; return'😢'; } }">
+        <button type="button" @click="open = !open" class="flex items-center gap-3 w-full">
+            <span class="text-xl">💭</span>
+            <div class="flex-1 text-left">
+                <div class="text-sm font-semibold text-gray-800">How are you right now?</div>
+                <div class="text-xs text-indigo-500 font-medium">Quick mood check</div>
+            </div>
+            <span class="text-gray-400 text-xs" x-text="open ? '▲' : '▼'"></span>
+        </button>
+        <form method="POST" action="{{ path('app_mood_save') }}" x-show="open" x-cloak class="mt-3 space-y-2">
+            <input type="hidden" name="_token" value="{{ csrf_token('mood_log') }}">
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-400">1 — rough</span>
+                    <span class="text-xl" x-text="moodEmoji()"></span>
+                    <span class="text-xs text-gray-400">10 — great</span>
+                </div>
+                <input type="range" name="mood" min="1" max="10" x-model="mood"
+                       class="w-full h-2 rounded-full appearance-none bg-gradient-to-r from-red-400 to-green-400 cursor-pointer accent-indigo-500">
+                <div class="text-center text-xs font-bold text-indigo-600 mt-1" x-text="mood + ' / 10'"></div>
+            </div>
+            <input type="text" name="note" placeholder="Optional note…"
+                   class="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-300">
+            <div class="flex items-center justify-between">
+                <button type="submit" class="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition">Log it</button>
+            </div>
+        </form>
+    </div>
+
     {% if logs is empty %}
-    <p class="text-center text-gray-400 text-sm">No mood logs yet. Use the quick check on the dashboard.</p>
+    <p class="text-center text-gray-400 text-sm">No mood logs yet.</p>
     {% else %}
 
     {# Line chart #}
-    <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6 relative" id="mood-chart-wrap">
+        <div id="mood-tip" class="hidden absolute pointer-events-none z-20 bg-gray-900 text-white text-xs rounded-xl px-3 py-2 shadow-lg w-44">
+            <p id="mood-tip-date" class="font-semibold"></p>
+            <p id="mood-tip-mood" class="text-white/70"></p>
+        </div>
         {% set clogs = logs|reverse %}
         {% set cn = clogs|length %}
-        {% set cW = 460 %}{% set cH = 80 %}{% set cL = 24 %}{% set cT = 8 %}{% set cB = 20 %}
-        <svg viewBox="0 0 {{ cL + cW + 6 }} {{ cT + cH + cB }}" class="w-full" style="height:140px">
+        {% set cW = 460 %}{% set cH = 120 %}{% set cL = 24 %}{% set cT = 8 %}{% set cB = 20 %}
+        <svg id="mood-chart-svg" viewBox="0 0 {{ cL + cW + 6 }} {{ cT + cH + cB }}" class="w-full" style="height:200px">
             {# Y gridlines + labels #}
             {% for yv in [1, 2, 4, 6, 8, 10] %}
             {% set gy = (cT + (10 - yv) / 10 * cH)|round %}
@@ -53,22 +88,65 @@
             {% for log in clogs %}
             {% set ix = (cL + (cn > 1 ? loop.index0 / (cn - 1) : 0.5) * cW)|round %}
             {% set iy = (cT + (10 - log.mood) / 10 * cH)|round %}
-            <circle cx="{{ ix }}" cy="{{ iy }}" r="3" fill="#6366f1" stroke="white" stroke-width="1.5">
-                <title>{{ log.moodEmoji }} {{ log.mood }}/10 · {{ log.createdAt|date('M j, g:ia', user.timezone) }}{% if log.note %} — {{ log.note }}{% endif %}</title>
-            </circle>
+            <circle class="mood-dot" cx="{{ ix }}" cy="{{ iy }}" r="5"
+                    fill="#6366f1" stroke="white" stroke-width="1.5"
+                    data-date="{{ log.createdAt|date('M j, Y · g:i a', user.timezone) }}"
+                    data-mood="{{ log.mood }}"
+                    data-entry="mood-entry-{{ log.id }}"/>
             {% endfor %}
         </svg>
     </div>
 
+    <script>
+    (function () {
+        const wrap = document.getElementById('mood-chart-wrap');
+        const tip  = document.getElementById('mood-tip');
+        const tipDate = document.getElementById('mood-tip-date');
+        const tipMood = document.getElementById('mood-tip-mood');
+        const dots = document.querySelectorAll('.mood-dot');
+
+        dots.forEach(function (dot) {
+            dot.style.cursor = 'pointer';
+
+            dot.addEventListener('mouseenter', function (e) {
+                tipDate.textContent = dot.dataset.date;
+                tipMood.textContent = 'Mood: ' + dot.dataset.mood + '/10';
+                tip.classList.remove('hidden');
+            });
+
+            dot.addEventListener('mousemove', function (e) {
+                const r = wrap.getBoundingClientRect();
+                tip.style.left = (e.clientX - r.left + 12) + 'px';
+                tip.style.top  = (e.clientY - r.top  - 52) + 'px';
+            });
+
+            dot.addEventListener('mouseleave', function () {
+                tip.classList.add('hidden');
+            });
+
+            dot.addEventListener('click', function () {
+                const entry = document.getElementById(dot.dataset.entry);
+                if (!entry) return;
+                const top = entry.getBoundingClientRect().top + window.scrollY - (window.innerHeight / 2) + (entry.offsetHeight / 2);
+                window.scrollTo({ top: top, behavior: 'smooth' });
+                entry.style.transition = 'box-shadow 0.3s';
+                entry.style.boxShadow = '0 0 0 3px #6366f1';
+                setTimeout(function () { entry.style.boxShadow = ''; }, 1500);
+            });
+        });
+    })();
+    </script>
+
     <div class="space-y-3">
         {% for log in logs %}
-        <div class="bg-white rounded-2xl border border-gray-100 px-5 py-4"
+        <div id="mood-entry-{{ log.id }}" class="bg-white rounded-2xl border border-gray-100 px-5 py-4"
              x-data="{ editing: false }">
-            <div class="flex items-start gap-4">
-                <div class="text-2xl">{{ log.moodEmoji }}</div>
+            <div class="flex items-start gap-4"
+             x-data="{ score: {{ log.mood }}, moodEmoji() { const m=this.score; if(m>=9)return'😄'; if(m>=7)return'😊'; if(m>=5)return'😐'; if(m>=3)return'😔'; return'😢'; } }">
+                <div class="text-2xl" x-text="editing ? moodEmoji() : '{{ log.moodEmoji }}'"></div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
-                        <span class="font-bold text-indigo-600">{{ log.mood }}/10</span>
+                        <span class="font-bold text-indigo-600" x-text="(editing ? score : {{ log.mood }}) + '/10'"></span>
                         <span class="text-xs text-gray-400">{{ log.createdAt|date('M j, Y · g:i a', user.timezone) }}</span>
                     </div>
 
@@ -79,20 +157,29 @@
                         {% else %}
                         <p class="text-xs text-gray-300 mt-1 italic">no note</p>
                         {% endif %}
-                        <button @click="editing = true" class="text-xs text-indigo-400 hover:text-indigo-600 mt-1.5 transition">edit note</button>
+                        <button @click="editing = true" class="text-xs text-indigo-400 hover:text-indigo-600 mt-1.5 transition">edit</button>
                     </div>
 
                     {# Edit mode #}
                     <form method="POST" action="{{ path('app_mood_update_note', {id: log.id}) }}"
                           x-show="editing" x-cloak class="mt-2 space-y-2">
                         <input type="hidden" name="_token" value="{{ csrf_token('mood_note_' ~ log.id) }}">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-gray-400">1 — rough</span>
+                                <span class="text-xs text-gray-400">10 — great</span>
+                            </div>
+                            <input type="range" name="mood" min="1" max="10" x-model="score"
+                                   class="w-full h-2 rounded-full appearance-none bg-gradient-to-r from-red-400 to-green-400 cursor-pointer accent-indigo-500">
+                            <div class="text-center text-xs font-bold text-indigo-600 mt-1" x-text="score + ' / 10'"></div>
+                        </div>
                         <input type="text" name="note"
                                value="{{ log.note }}"
                                placeholder="Add a note…"
                                class="w-full px-3 py-1.5 rounded-lg border border-indigo-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                         <div class="flex gap-2">
                             <button type="submit" class="px-3 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition">Save</button>
-                            <button type="button" @click="editing = false" class="px-3 py-1 text-xs text-gray-400 hover:text-gray-600 transition">Cancel</button>
+                            <button type="button" @click="editing = false; score = {{ log.mood }}" class="px-3 py-1 text-xs text-gray-400 hover:text-gray-600 transition">Cancel</button>
                         </div>
                     </form>
                 </div>
