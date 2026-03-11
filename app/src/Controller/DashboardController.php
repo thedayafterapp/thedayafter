@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\CheckInRepository;
 use App\Repository\JournalEntryRepository;
+use App\Repository\MoodLogRepository;
 use App\Service\AchievementService;
 use App\Service\QuoteService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,6 +18,7 @@ class DashboardController extends AbstractController
     public function index(
         CheckInRepository $checkInRepo,
         JournalEntryRepository $journalRepo,
+        MoodLogRepository $moodLogRepo,
         AchievementService $achievementService,
         QuoteService $quoteService,
     ): Response {
@@ -30,6 +32,7 @@ class DashboardController extends AbstractController
 
         $recentCheckIns  = $checkInRepo->findRecentByUser($user, 7);
         $recentJournals  = $journalRepo->findRecentByUser($user, 3);
+        $recentMoodLogs  = $moodLogRepo->findRecentByUser($user, 20);
         $progress        = $achievementService->getProgressToNext($user);
         $checkedInToday  = $checkInRepo->hadCheckInToday($user);
         $weeklyStats     = $checkInRepo->getWeeklyStats($user);
@@ -54,6 +57,7 @@ class DashboardController extends AbstractController
             'trigger_analysis' => $triggerAnalysis,
             'quote'            => $quote,
             'xp_progress'      => $xpProgress,
+            'recent_mood_logs' => $recentMoodLogs,
         ]);
     }
 

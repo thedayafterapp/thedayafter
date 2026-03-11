@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+{% block title %}How are you right now?{% endblock %}
+
+{% block body %}
+<div class="max-w-md mx-auto px-4 py-10">
+    <div class="text-center mb-8">
+        <a href="{{ path('app_dashboard') }}" class="text-gray-500 hover:text-gray-700 text-sm">← Dashboard</a>
+        <div class="text-4xl mt-4 mb-2">💭</div>
+        <h1 class="text-2xl font-black text-gray-900">How are you right now?</h1>
+        <p class="text-gray-500 text-sm mt-1">Quick check — no XP, no pressure, just honesty.</p>
+    </div>
+
+    <form method="POST" action="{{ path('app_mood_save') }}"
+          class="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 space-y-6"
+          x-data="{ mood: 5 }">
+        <input type="hidden" name="_token" value="{{ csrf_token('mood_log') }}">
+
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <label class="text-sm font-semibold text-gray-700">Mood</label>
+                <span class="text-2xl" x-text="['😢','😢','😔','😔','😐','😐','😊','😊','😄','😄','😄'][mood]"></span>
+            </div>
+            <input type="range" name="mood" min="1" max="10" x-model="mood"
+                   class="w-full accent-indigo-500">
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+                <span>1 — rough</span>
+                <span x-text="mood + ' / 10'" class="font-bold text-indigo-600"></span>
+                <span>10 — great</span>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Anything on your mind? <span class="font-normal text-gray-400">(optional)</span></label>
+            <textarea name="note" rows="3"
+                      class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none text-sm"
+                      placeholder="Feeling stressed after work, craving hit around 6pm…"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-teal-500 text-white rounded-xl font-bold text-lg hover:opacity-90 transition">
+            Log it
+        </button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mood History{% endblock %}
+
+{% block body %}
+<div class="max-w-xl mx-auto px-4 py-10">
+    <div class="text-center mb-8">
+        <a href="{{ path('app_dashboard') }}" class="text-gray-500 hover:text-gray-700 text-sm">← Dashboard</a>
+        <div class="text-4xl mt-4 mb-2">💭</div>
+        <h1 class="text-2xl font-black text-gray-900">Mood History</h1>
+        <p class="text-gray-500 text-sm mt-1">{{ logs|length }} quick check{{ logs|length == 1 ? '' : 's' }} logged</p>
+    </div>
+
+    {% if logs is empty %}
+    <p class="text-center text-gray-400 text-sm">No mood logs yet. Use the quick check on the dashboard.</p>
+    {% else %}
+
+    {# Line chart #}
+    <div class="bg-white rounded-2xl border border-gray-100 p-5 mb-6">
+        {% set clogs = logs|reverse %}
+        {% set cn = clogs|length %}
+        {% set cW = 460 %}{% set cH = 80 %}{% set cL = 24 %}{% set cT = 8 %}{% set cB = 20 %}
+        <svg viewBox="0 0 {{ cL + cW + 6 }} {{ cT + cH + cB }}" class="w-full" style="height:140px">
+            {# Y gridlines + labels #}
+            {% for yv in [1, 2, 4, 6, 8, 10] %}
+            {% set gy = (cT + (10 - yv) / 10 * cH)|round %}
+            <line x1="{{ cL }}" y1="{{ gy }}" x2="{{ cL + cW }}" y2="{{ gy }}"
+                  stroke="{{ yv in [1,10] ? '#e5e7eb' : '#f3f4f6' }}" stroke-width="1"/>
+            <text x="{{ cL - 4 }}" y="{{ gy + 3 }}" text-anchor="end" font-size="8" fill="#9ca3af">{{ yv }}</text>
+            {% endfor %}
+
+            {# X axis date labels — show when day changes #}
+            {% set prevDay = '' %}
+            {% for log in clogs %}
+            {% set day = log.createdAt|date('M j', user.timezone) %}
+            {% if day != prevDay %}
+            {% set ix = (cL + (cn > 1 ? loop.index0 / (cn - 1) : 0.5) * cW)|round %}
+            <line x1="{{ ix }}" y1="{{ cT }}" x2="{{ ix }}" y2="{{ cT + cH }}" stroke="#f9fafb" stroke-width="1"/>
+            <text x="{{ ix }}" y="{{ cT + cH + cB - 4 }}" text-anchor="middle" font-size="8" fill="#9ca3af">{{ day }}</text>
+            {% set prevDay = day %}
+            {% endif %}
+            {% endfor %}
+
+            {# Line #}
+            {% set pts = '' %}
+            {% for log in clogs %}
+            {% set ix = (cL + (cn > 1 ? loop.index0 / (cn - 1) : 0.5) * cW)|round %}
+            {% set iy = (cT + (10 - log.mood) / 10 * cH)|round %}
+            {% set pts = pts ~ ix ~ ',' ~ iy ~ ' ' %}
+            {% endfor %}
+            <polyline points="{{ pts }}" fill="none" stroke="#6366f1" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+
+            {# Dots #}
+            {% for log in clogs %}
+            {% set ix = (cL + (cn > 1 ? loop.index0 / (cn - 1) : 0.5) * cW)|round %}
+            {% set iy = (cT + (10 - log.mood) / 10 * cH)|round %}
+            <circle cx="{{ ix }}" cy="{{ iy }}" r="3" fill="#6366f1" stroke="white" stroke-width="1.5">
+                <title>{{ log.moodEmoji }} {{ log.mood }}/10 · {{ log.createdAt|date('M j, g:ia', user.timezone) }}{% if log.note %} — {{ log.note }}{% endif %}</title>
+            </circle>
+            {% endfor %}
+        </svg>
+    </div>
+
+    <div class="space-y-3">
+        {% for log in logs %}
+        <div class="bg-white rounded-2xl border border-gray-100 px-5 py-4"
+             x-data="{ editing: false }">
+            <div class="flex items-start gap-4">
+                <div class="text-2xl">{{ log.moodEmoji }}</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-indigo-600">{{ log.mood }}/10</span>
+                        <span class="text-xs text-gray-400">{{ log.createdAt|date('M j, Y · g:i a', user.timezone) }}</span>
+                    </div>
+
+                    {# View mode #}
+                    <div x-show="!editing">
+                        {% if log.note %}
+                        <p class="text-sm text-gray-600 mt-1">{{ log.note }}</p>
+                        {% else %}
+                        <p class="text-xs text-gray-300 mt-1 italic">no note</p>
+                        {% endif %}
+                        <button @click="editing = true" class="text-xs text-indigo-400 hover:text-indigo-600 mt-1.5 transition">edit note</button>
+                    </div>
+
+                    {# Edit mode #}
+                    <form method="POST" action="{{ path('app_mood_update_note', {id: log.id}) }}"
+                          x-show="editing" x-cloak class="mt-2 space-y-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('mood_note_' ~ log.id) }}">
+                        <input type="text" name="note"
+                               value="{{ log.note }}"
+                               placeholder="Add a note…"
+                               class="w-full px-3 py-1.5 rounded-lg border border-indigo-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <div class="flex gap-2">
+                            <button type="submit" class="px-3 py-1 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition">Save</button>
+                            <button type="button" @click="editing = false" class="px-3 py-1 text-xs text-gray-400 hover:text-gray-600 transition">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+
+                {# Delete #}
+                <form method="POST" action="{{ path('app_mood_delete', {id: log.id}) }}"
+                      onsubmit="return confirm('Delete this entry?')">
+                    <input type="hidden" name="_token" value="{{ csrf_token('mood_delete_' ~ log.id) }}">
+                    <button type="submit" class="text-gray-200 hover:text-red-400 transition text-sm leading-none">✕</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
