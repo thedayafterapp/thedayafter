@@ -13,13 +13,13 @@ docker compose build php
 echo "==> Restarting app container..."
 docker compose up -d --force-recreate php
 
-echo "==> Clearing cache directory..."
-sudo rm -rf "$DEPLOY_DIR/app/var/cache"
-
 echo "==> Running migrations & cache inside container..."
 docker compose exec -T php php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
 docker compose exec -T php php bin/console cache:clear --no-interaction
 docker compose exec -T php php bin/console cache:warmup --no-interaction
+
+echo "==> Clearing cache directory..."
+sudo rm -rf "$DEPLOY_DIR/app/var/cache"
 
 echo ""
 echo "==> Deploy complete!"
