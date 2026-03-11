@@ -123,7 +123,7 @@
                     {% endif %}
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="text-xs text-gray-400">{{ c.createdAt|date('M j', user.timezone) }}</div>
+                    <div class="text-xs text-gray-400">{{ c.createdAt|date('M j · g:i a', user.timezone) }}</div>
                     <form method="POST" action="{{ path('app_checkin_delete', {id: c.id}) }}"
                           onsubmit="return confirm('Delete this check-in?')">
                         <input type="hidden" name="_token" value="{{ csrf_token('delete_checkin_' ~ c.id) }}">
