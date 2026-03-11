@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full overflow-x-hidden" style="scroll-behavior: smooth;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try TheDayAfter — No Sign-Up Needed</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { brand: {
+                50:'#f0fdf9',100:'#ccfbef',200:'#99f6e0',300:'#5eead4',
+                400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',
+                800:'#115e59',900:'#134e4a'
+            }}}}
+        }
+    </script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .gradient-hero { background: linear-gradient(135deg, #0f766e 0%, #1d4ed8 50%, #7c3aed 100%); }
+        @keyframes floatA { 0%,100%{transform:translate(0,0)} 33%{transform:translate(20px,-30px)} 66%{transform:translate(-15px,15px)} }
+        @keyframes floatB { 0%,100%{transform:translate(0,0)} 40%{transform:translate(-25px,20px)} 70%{transform:translate(15px,-25px)} }
+        .breathe-scale { transition: transform 1s ease-in-out, opacity 1s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 overflow-x-hidden" x-data="demoApp()" x-init="init()">
+
+{# ── Header ── #}
+<header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur border-b border-gray-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-14">
+        <a href="/" class="flex items-center gap-2 text-brand-700 font-bold text-lg"><span class="text-xl">🌿</span> TheDayAfter</a>
+        <div class="flex items-center gap-2">
+            <a href="/login" class="text-sm text-gray-500 hover:text-gray-800 px-3 py-1.5">Sign in</a>
+            <a :href="registerUrl" class="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-semibold transition">Sign up free</a>
+        </div>
+    </div>
+</header>
+
+{# ══ SETUP SCREEN ══ #}
+<div x-show="!ready" x-cloak class="gradient-hero min-h-screen flex items-center justify-center px-4 pt-14">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 right-10 w-48 h-48 rounded-full bg-white/5" style="animation:floatA 14s ease-in-out infinite"></div>
+        <div class="absolute bottom-20 -left-10 w-56 h-56 rounded-full bg-white/5" style="animation:floatB 18s ease-in-out infinite"></div>
+    </div>
+    <div class="relative z-10 w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="text-5xl mb-3">🌿</div>
+            <h1 class="text-3xl font-black text-white">Try it — no signup needed</h1>
+            <p class="text-white/70 mt-2">Set up in 10 seconds. Data stays on your device.</p>
+        </div>
+        <div class="bg-white rounded-3xl p-7 shadow-2xl space-y-5">
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">What are you quitting?</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" @click="setupAddiction='alcohol'"
+                            :class="setupAddiction==='alcohol'?'bg-brand-600 text-white border-brand-600':'bg-white text-gray-600 border-gray-200 hover:border-brand-400'"
+                            class="border-2 rounded-xl py-2.5 text-sm font-semibold transition">🍺 Alcohol</button>
+                    <button type="button" @click="setupAddiction='smoking'"
+                            :class="setupAddiction==='smoking'?'bg-brand-600 text-white border-brand-600':'bg-white text-gray-600 border-gray-200 hover:border-brand-400'"
+                            class="border-2 rounded-xl py-2.5 text-sm font-semibold transition">🚬 Smoking</button>
+                    <button type="button" @click="setupAddiction='cannabis'"
+                            :class="setupAddiction==='cannabis'?'bg-brand-600 text-white border-brand-600':'bg-white text-gray-600 border-gray-200 hover:border-brand-400'"
+                            class="border-2 rounded-xl py-2.5 text-sm font-semibold transition">🌿 Cannabis</button>
+                    <button type="button" @click="setupAddiction='both'"
+                            :class="setupAddiction==='both'?'bg-brand-600 text-white border-brand-600':'bg-white text-gray-600 border-gray-200 hover:border-brand-400'"
+                            class="border-2 rounded-xl py-2.5 text-sm font-semibold transition">💪 Alcohol + Smoking</button>
+                </div>
+            </div>
+            {# Date fields per track #}
+            <div x-show="setupAddiction==='alcohol'||setupAddiction==='both'">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Alcohol-free since</label>
+                <input type="datetime-local" x-model="setupAlcoholDate" :max="today"
+                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+            </div>
+            <div x-show="setupAddiction==='smoking'||setupAddiction==='both'">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Smoke-free since</label>
+                <input type="datetime-local" x-model="setupSmokingDate" :max="today"
+                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+            </div>
+            <div x-show="setupAddiction==='cannabis'">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Cannabis-free since</label>
+                <input type="datetime-local" x-model="setupCannabisDate" :max="today"
+                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+            </div>
+            <p class="text-xs text-gray-400 -mt-3">Leave as today if you're just starting 🌱</p>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Daily spend <span class="font-normal normal-case text-gray-300">— optional, for money saved tracking</span></label>
+                <div class="flex gap-2">
+                    <select x-model="setupCurrency" class="px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white">
+                        <option>$</option><option>€</option><option>£</option><option>¥</option><option>₹</option><option>A$</option><option>C$</option>
+                    </select>
+                    <input x-show="setupAddiction==='alcohol'||setupAddiction==='both'" type="number" x-model="setupAlcoholCost" min="0" step="0.5" placeholder="Alcohol /day"
+                           class="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                    <input x-show="setupAddiction==='smoking'||setupAddiction==='both'" type="number" x-model="setupSmokingCost" min="0" step="0.5" placeholder="Smoking /day"
+                           class="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                    <input x-show="setupAddiction==='cannabis'" type="number" x-model="setupCannabisCost" min="0" step="0.5" placeholder="Cannabis /day"
+                           class="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                </div>
+            </div>
+            <button @click="startDemo()" :disabled="!setupReady"
+                    class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white rounded-2xl font-bold text-base transition">
+                Start my journey →
+            </button>
+            <p class="text-center text-xs text-gray-400">No account. No email. Just you and your streak.</p>
+        </div>
+        <p class="text-center text-white/50 text-xs mt-5">
+            Already have an account? <a href="/login" class="text-white/80 hover:text-white underline">Sign in</a>
+        </p>
+    </div>
+</div>
+
+{# ══ DEMO DASHBOARD ══ #}
+<div x-show="ready" x-cloak class="pt-14">
+
+    {# Always-visible preview banner #}
+    <div class="bg-indigo-600 text-white px-4 py-2.5 text-center text-xs sm:text-sm">
+        👋 <strong>Preview mode</strong> — your data is only on this device.
+        <a :href="registerUrl" class="underline font-semibold ml-1">Sign up free to save it forever →</a>
+    </div>
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10" style="contain:strict">
+        <div class="absolute top-20 right-0 w-48 h-48 rounded-full bg-teal-100/40" style="animation:floatA 14s ease-in-out infinite"></div>
+        <div class="absolute top-1/3 -left-10 w-56 h-56 rounded-full bg-indigo-100/30" style="animation:floatB 18s ease-in-out infinite"></div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+
+        {# ── Streak hero — single addiction ── #}
+        <div x-show="addiction !== 'both'" class="rounded-3xl p-7 mb-6 text-white relative overflow-hidden"
+             :class="addiction==='smoking' ? 'bg-gradient-to-br from-violet-500 to-indigo-700' : (addiction==='cannabis' ? 'bg-gradient-to-br from-green-500 to-emerald-700' : 'bg-gradient-to-br from-teal-500 to-brand-700')">
+            <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/5"></div>
+            <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+                <div>
+                    <p class="text-white/70 text-sm font-medium mb-1" x-text="addictionLabel"></p>
+                    <div class="flex items-end gap-3">
+                        <span class="text-7xl font-black" x-text="days"></span>
+                        <span class="text-3xl font-bold text-white/80 mb-2">days</span>
+                    </div>
+                    <p class="text-white/60 text-sm mt-1">Since <span x-text="primaryDateFormatted"></span></p>
+                    <div class="mt-3 inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-1.5">
+                        <span x-text="level>=5?'🔥':(level>=3?'⭐':'🌱')"></span>
+                        <span class="font-bold text-sm">Level <span x-text="level"></span>: <span x-text="levelName"></span></span>
+                    </div>
+                    <p x-show="moneySaved > 0" class="text-white/80 text-sm font-semibold mt-2">💰 <span x-text="currency + moneySaved.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' saved'"></span></p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button @click="editOpen ? editOpen=false : openEdit()" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl font-semibold text-sm transition">✏️ Edit</button>
+                    <button @click="toggleSOS()" class="px-4 py-2 bg-red-500/80 hover:bg-red-500 rounded-xl font-semibold text-sm transition">🆘 SOS</button>
+                    <button @click="deleteAll()" class="px-4 py-2 bg-black/20 hover:bg-black/30 rounded-xl font-semibold text-sm transition text-white/80">🗑️ Delete all data & start over</button>
+                </div>
+            </div>
+        </div>
+
+        {# ── Streak hero — both (alcohol + smoking) ── #}
+        <div x-show="addiction === 'both'" class="mb-6">
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gradient-to-br from-teal-500 to-brand-700 rounded-3xl p-6 text-white relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/5"></div>
+                    <div class="relative z-10">
+                        <p class="text-white/70 text-sm font-medium mb-1">🍺 Alcohol-free</p>
+                        <div class="flex items-end gap-2">
+                            <span class="text-5xl font-black" x-text="alcoholDays"></span>
+                            <span class="text-xl font-bold text-white/80 mb-1">days</span>
+                        </div>
+                        <p class="text-white/60 text-xs mt-1">Since <span x-text="alcoholDateFormatted"></span></p>
+                    </div>
+                </div>
+                <div class="bg-gradient-to-br from-violet-500 to-indigo-700 rounded-3xl p-6 text-white relative overflow-hidden">
+                    <div class="absolute -right-6 -top-6 w-32 h-32 rounded-full bg-white/5"></div>
+                    <div class="relative z-10">
+                        <p class="text-white/70 text-sm font-medium mb-1">🚬 Smoke-free</p>
+                        <div class="flex items-end gap-2">
+                            <span class="text-5xl font-black" x-text="smokingDays"></span>
+                            <span class="text-xl font-bold text-white/80 mb-1">days</span>
+                        </div>
+                        <p class="text-white/60 text-xs mt-1">Since <span x-text="smokingDateFormatted"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-3">
+                <div class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+                    <span x-text="level>=5?'🔥':(level>=3?'⭐':'🌱')"></span>
+                    <span class="text-amber-700 font-bold text-sm">Level <span x-text="level"></span>: <span x-text="levelName"></span></span>
+                </div>
+                <button @click="editOpen ? editOpen=false : openEdit()" class="px-4 py-2 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl font-semibold text-sm transition text-gray-700">✏️ Edit</button>
+                <button @click="toggleSOS()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold text-sm transition">🆘 SOS</button>
+                <button @click="deleteAll()" class="px-4 py-2 bg-white hover:bg-red-50 border border-red-200 text-red-500 rounded-xl font-semibold text-sm transition">🗑️ Delete all data & start over</button>
+            </div>
+        </div>
+
+        {# ── Shared edit panel ── #}
+        <div x-show="editOpen" x-cloak class="mb-6 bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+            <p class="font-bold text-gray-800 text-sm">Edit your settings</p>
+            <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">What are you quitting?</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" @click="editAddiction='alcohol'"
+                            :class="editAddiction==='alcohol'?'bg-brand-600 text-white border-brand-600':'bg-white text-gray-600 border-gray-200 hover:border-brand-400'"
+                            class="border-2 rounded-xl py-2 text-sm font-semibold transition">🍺 Alcohol</button>
+                    <button type="button" @click="editAddiction='smoking'"
+                            :class="editAddiction==='smoking'?'bg-brand-600 text-white border-brand-600':'bg-white text-gray-600 border-gray-200 hover:border-brand-400'"
+                            class="border-2 rounded-xl py-2 text-sm font-semibold transition">🚬 Smoking</button>
+                    <button type="button" @click="editAddiction='cannabis'"
+                            :class="editAddiction==='cannabis'?'bg-brand-600 text-white border-brand-600':'bg-white text-gray-600 border-gray-200 hover:border-brand-400'"
+                            class="border-2 rounded-xl py-2 text-sm font-semibold transition">🌿 Cannabis</button>
+                    <button type="button" @click="editAddiction='both'"
+                            :class="editAddiction==='both'?'bg-brand-600 text-white border-brand-600':'bg-white text-gray-600 border-gray-200 hover:border-brand-400'"
+                            class="border-2 rounded-xl py-2 text-sm font-semibold transition">💪 Alcohol + Smoking</button>
+                </div>
+            </div>
+            <div x-show="editAddiction==='alcohol'||editAddiction==='both'">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Alcohol-free since</label>
+                <input type="datetime-local" x-model="editAlcoholDate" :max="today"
+                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+            </div>
+            <div x-show="editAddiction==='smoking'||editAddiction==='both'">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Smoke-free since</label>
+                <input type="datetime-local" x-model="editSmokingDate" :max="today"
+                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+            </div>
+            <div x-show="editAddiction==='cannabis'">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Cannabis-free since</label>
+                <input type="datetime-local" x-model="editCannabisDate" :max="today"
+                       class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Daily spend <span class="font-normal normal-case text-gray-300">— for money saved tracking</span></label>
+                <div class="flex gap-2">
+                    <select x-model="editCurrency" class="px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white">
+                        <option>$</option><option>€</option><option>£</option><option>¥</option><option>₹</option><option>A$</option><option>C$</option>
+                    </select>
+                    <input x-show="editAddiction==='alcohol'||editAddiction==='both'" type="number" x-model="editAlcoholCost" min="0" step="0.5" placeholder="Alcohol /day"
+                           class="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                    <input x-show="editAddiction==='smoking'||editAddiction==='both'" type="number" x-model="editSmokingCost" min="0" step="0.5" placeholder="Smoking /day"
+                           class="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                    <input x-show="editAddiction==='cannabis'" type="number" x-model="editCannabisCost" min="0" step="0.5" placeholder="Cannabis /day"
+                           class="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                </div>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button @click="saveEdit()" class="flex-1 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-sm transition">Save changes</button>
+                <button @click="editOpen=false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-sm font-semibold transition">Cancel</button>
+            </div>
+        </div>
+
+        {# SOS — inline, right below streak #}
+        <div x-show="sosOpen" x-cloak id="demo-sos-block" class="mb-6 max-w-xl mx-auto bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900 rounded-2xl p-5 text-white">
+            <div class="text-center mb-4">
+                <div class="text-3xl mb-1">🌊</div>
+                <h3 class="text-lg font-black">You're Having a Craving</h3>
+                <p class="text-white/60 text-xs mt-1">Cravings peak in 15-20 min. They always pass.</p>
+            </div>
+            <div x-data="{ tab: 'breathe' }">
+                <div class="flex flex-wrap justify-center gap-1.5 mb-4">
+                    <button @click="tab='breathe'" :class="tab==='breathe'?'bg-teal-500 text-white':'bg-white/10 text-white/70 hover:bg-white/20'"
+                            class="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition">🫁 Breathing</button>
+                    <button @click="tab='ground'" :class="tab==='ground'?'bg-teal-500 text-white':'bg-white/10 text-white/70 hover:bg-white/20'"
+                            class="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition">👁️ Grounding</button>
+                    <button @click="tab='cold'" :class="tab==='cold'?'bg-teal-500 text-white':'bg-white/10 text-white/70 hover:bg-white/20'"
+                            class="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition">❄️ Cold Water</button>
+                    <button @click="tab='move'" :class="tab==='move'?'bg-teal-500 text-white':'bg-white/10 text-white/70 hover:bg-white/20'"
+                            class="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition">🚶 Move</button>
+                    <button @click="tab='urge'" :class="tab==='urge'?'bg-teal-500 text-white':'bg-white/10 text-white/70 hover:bg-white/20'"
+                            class="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition">🌊 Urge Surf</button>
+                </div>
+
+                {# Breathing #}
+                <div x-show="tab==='breathe'" x-data="breathingExercise()" class="text-center">
+                    <p class="text-white/60 text-xs mb-3">4-7-8 Breathing — activates your parasympathetic nervous system</p>
+                    <div class="flex items-center justify-center mb-4">
+                        <div class="w-28 h-28 rounded-full bg-teal-500/30 flex items-center justify-center breathe-scale"
+                             :style="{transform:`scale(${breatheScale})`,opacity:breatheOpacity}">
+                            <div class="w-16 h-16 rounded-full bg-teal-400/50 flex items-center justify-center">
+                                <span class="text-white font-bold text-xl" x-text="breatheCount"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-white font-semibold" x-text="breathePhase"></p>
+                    <button @click="toggleBreathing()"
+                            class="mt-4 px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-semibold transition text-sm"
+                            x-text="breathing?'Pause':'Start'"></button>
+                </div>
+
+                {# Grounding #}
+                <div x-show="tab==='ground'" x-data="{step:0}" class="text-center">
+                    <p class="text-white/60 text-xs mb-4">5-4-3-2-1 Grounding — pulls you into the present moment</p>
+                    <template x-if="step<5">
+                        <div>
+                            <template x-for="(s,i) in [{n:5,q:'Name 5 things you can SEE'},{n:4,q:'Name 4 things you can HEAR'},{n:3,q:'Name 3 things you can TOUCH'},{n:2,q:'Name 2 things you can SMELL'},{n:1,q:'Name 1 thing you can TASTE'}]" :key="i">
+                                <div x-show="step===i" class="bg-white/10 rounded-xl p-4 mb-3">
+                                    <p class="text-teal-300 font-black text-3xl" x-text="s.n"></p>
+                                    <p class="text-white font-semibold mt-1 text-sm" x-text="s.q"></p>
+                                </div>
+                            </template>
+                            <button @click="step<4?step++:step=5" class="px-6 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-xl font-semibold text-sm transition">Next →</button>
+                        </div>
+                    </template>
+                    <template x-if="step>=5">
+                        <div>
+                            <p class="text-teal-300 font-bold text-lg">You're grounded. 🌿</p>
+                            <p class="text-white/50 text-sm mt-1">Notice how the intensity has shifted.</p>
+                            <button @click="step=0" class="mt-3 text-xs text-white/50 hover:text-white">Start again</button>
+                        </div>
+                    </template>
+                </div>
+
+                {# Cold Water #}
+                <div x-show="tab==='cold'" class="text-white">
+                    <p class="text-white/60 text-xs mb-4 text-center">Cold activates your dive reflex — instantly calms the nervous system</p>
+                    <div class="space-y-3">
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <p class="font-bold text-sm mb-1">❄️ Ice on wrists</p>
+                            <p class="text-white/70 text-xs">Hold ice cubes on your wrists or the back of your neck for 30 seconds.</p>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <p class="font-bold text-sm mb-1">💧 Cold water splash</p>
+                            <p class="text-white/70 text-xs">Splash cold water on your face or hold your wrists under cold running water.</p>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <p class="font-bold text-sm mb-1">🧊 Ice cube technique</p>
+                            <p class="text-white/70 text-xs">Hold an ice cube tightly in your hand. The intense sensation redirects focus away from the craving.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Movement #}
+                <div x-show="tab==='move'" class="text-white">
+                    <p class="text-white/60 text-xs mb-4 text-center">Physical movement burns off cortisol and releases endorphins</p>
+                    <div class="space-y-3">
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <p class="font-bold text-sm mb-1">🚶 Walk it out</p>
+                            <p class="text-white/70 text-xs">Step outside and walk for 5-10 minutes. Change your environment, change your state.</p>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <p class="font-bold text-sm mb-1">💪 10 push-ups or squats</p>
+                            <p class="text-white/70 text-xs">Intense short exercise spikes adrenaline and suppresses the craving signal fast.</p>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-4">
+                            <p class="font-bold text-sm mb-1">🧘 Stretch & shake</p>
+                            <p class="text-white/70 text-xs">Shake your hands and arms vigorously for 30 seconds. Sounds silly, works brilliantly.</p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Urge surfing #}
+                <div x-show="tab==='urge'" class="text-center">
+                    <p class="text-white/60 text-xs mb-3">Observe the craving without acting on it</p>
+                    <div class="bg-white/10 rounded-xl p-4 text-left text-sm text-white/80 space-y-2 mb-4">
+                        <p>🌊 Picture the craving as a wave — you're surfing it, not drowning.</p>
+                        <p>👁️ Notice where you feel it in your body. Don't judge it, just observe.</p>
+                        <p>📈 It will peak, then pass. Cravings never last forever.</p>
+                        <p>⏳ You only need to last 15-20 minutes. You've done this before.</p>
+                    </div>
+                    <p class="text-white/50 text-xs">Most cravings pass within 15-20 minutes.</p>
+                </div>
+            </div>
+
+            {# Alex blocked card inside SOS #}
+            <div class="mt-5 pt-5 border-t border-white/10">
+                <div class="relative rounded-2xl overflow-hidden">
+                    <div class="bg-white/10 rounded-2xl p-4 pointer-events-none select-none opacity-40">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-full bg-indigo-400/30 flex items-center justify-center text-xl">🤖</div>
+                            <div>
+                                <p class="font-bold text-sm">Alex — AI Coach</p>
+                                <p class="text-white/60 text-xs">Personal recovery support, 24/7</p>
+                            </div>
+                        </div>
+                        <div class="bg-white/10 rounded-xl p-3 text-xs text-white/70 italic">
+                            "I'm here with you. You reached out instead of giving in — that's strength. What are you feeling right now?"
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 bg-gray-900/70 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-2xl">
+                        <span class="text-2xl">🤖</span>
+                        <p class="font-bold text-white mt-2 text-sm">Alex — AI Coach</p>
+                        <p class="text-white/60 text-xs mt-1">Talk through your craving with AI</p>
+                        <a :href="registerUrl" class="mt-3 px-5 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold transition">
+                            Sign up to talk to Alex
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <button @click="sosOpen=false" class="mt-4 w-full py-2 bg-white/10 hover:bg-white/20 text-white/70 rounded-xl text-xs font-semibold transition">
+                Close
+            </button>
+        </div>
+
+        {# Stats row #}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+                <div class="text-3xl font-black text-teal-600" x-text="days"></div>
+                <div class="text-xs font-medium text-gray-500 mt-1">Days Clean</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+                <div class="text-3xl font-black text-indigo-500" x-text="moods.length||'—'"></div>
+                <div class="text-xs font-medium text-gray-500 mt-1">Mood Logs</div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+                <div class="text-2xl font-black text-amber-500 leading-tight" x-text="levelName.split(' ').slice(0,2).join(' ')"></div>
+                <div class="text-xs font-medium text-gray-500 mt-1">Level <span x-text="level"></span></div>
+            </div>
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+                <div class="text-3xl font-black text-green-600" x-text="moneySaved > 0 ? currency + Math.floor(moneySaved).toLocaleString() : '—'"></div>
+                <div class="text-xs font-medium text-gray-500 mt-1">Money Saved</div>
+                <div x-show="moneySaved === 0" class="text-[10px] text-gray-400 mt-0.5">set daily spend ↑</div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="md:col-span-2 space-y-5">
+
+                {# ── Mood check — same as signed-in ── #}
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <button type="button" @click="moodOpen=!moodOpen" class="flex items-center gap-3 flex-1 min-w-0">
+                            <span class="text-xl">💭</span>
+                            <div class="flex-1 text-left">
+                                <div class="text-sm font-semibold text-gray-800">How are you right now?</div>
+                                <div class="text-xs text-indigo-500 font-medium">Quick mood check</div>
+                            </div>
+                            <span class="text-gray-400 text-xs" x-text="moodOpen?'▲':'▼'"></span>
+                        </button>
+                    </div>
+                    <div x-show="moodOpen" x-cloak class="mt-3 space-y-2">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-xs text-gray-400">1 — rough</span>
+                                <span class="text-xl" x-text="moodEmoji"></span>
+                                <span class="text-xs text-gray-400">10 — great</span>
+                            </div>
+                            <input type="range" name="mood" min="1" max="10" x-model="moodScore"
+                                   class="w-full h-2 rounded-full appearance-none bg-gradient-to-r from-red-400 to-green-400 cursor-pointer accent-indigo-500">
+                            <div class="text-center text-xs font-bold text-indigo-600 mt-1" x-text="moodScore+' / 10'"></div>
+                        </div>
+                        <input type="text" x-model="moodNote" placeholder="Optional note…"
+                               class="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <div class="flex items-center justify-between">
+                            <button @click="submitMood()" class="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition">Log it</button>
+                            <span x-show="moodSaved" x-cloak class="text-xs text-green-600 font-medium">✓ Saved!</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# ── Recent Mood chart — SVG line chart matching history page ── #}
+                <div x-show="moods.length > 0" x-cloak class="bg-white rounded-2xl border border-gray-100 p-5 relative" id="demo-mood-chart-wrap">
+                    <h2 class="font-bold text-gray-900 mb-3">📊 Recent Mood</h2>
+                    <div id="demo-mood-tip" class="hidden absolute pointer-events-none z-20 bg-gray-900 text-white text-xs rounded-xl px-3 py-2 shadow-lg w-36">
+                        <p id="demo-mood-tip-date" class="font-semibold"></p>
+                        <p id="demo-mood-tip-mood" class="text-white/70"></p>
+                    </div>
+                    <svg id="demo-mood-svg" viewBox="0 0 490 148" class="w-full" style="height:200px" x-effect="renderMoodChart(moods)"></svg>
+                    <div class="mt-4 space-y-2">
+                        <template x-for="(m, i) in moods.slice().reverse()" :key="m.date">
+                            <div class="flex items-start gap-3 px-1 py-2 border-t border-gray-50">
+                                <span class="text-xl flex-shrink-0" x-text="m.score>=9?'😄':(m.score>=7?'😊':(m.score>=5?'😐':(m.score>=3?'😔':'😢')))"></span>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold text-indigo-600 text-sm" x-text="m.score+'/10'"></span>
+                                        <span class="text-xs text-gray-400" x-text="new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})"></span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-0.5" x-show="m.note" x-text="m.note"></p>
+                                    <p class="text-xs text-gray-300 mt-0.5 italic" x-show="!m.note">no note</p>
+                                </div>
+                                <button @click="moods = moods.filter(e => e.date !== m.date); persist()" class="text-gray-200 hover:text-red-400 transition text-sm leading-none flex-shrink-0">✕</button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                {# ── Daily check-in BLOCKED ── #}
+                <div class="relative rounded-2xl overflow-hidden">
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 pointer-events-none select-none opacity-40">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="text-xl">📊</span>
+                            <div><div class="text-sm font-semibold text-gray-800">Daily Check-In</div><div class="text-xs text-teal-500 font-medium">Track mood & cravings</div></div>
+                        </div>
+                        <div class="space-y-3">
+                            <div><div class="flex justify-between mb-1 text-xs text-gray-500"><span>Mood</span><span>7/10</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full w-[70%] bg-gradient-to-r from-red-400 to-green-400 rounded-full"></div></div></div>
+                            <div><div class="flex justify-between mb-1 text-xs text-gray-500"><span>Craving</span><span>3/10</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full w-[30%] bg-gradient-to-r from-green-400 to-red-400 rounded-full"></div></div></div>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 bg-white/85 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-2xl">
+                        <span class="text-3xl">🔒</span>
+                        <p class="font-bold text-gray-700 mt-2 text-sm">Daily Check-In</p>
+                        <p class="text-xs text-gray-400 mt-1">Mood, cravings & trigger tracking</p>
+                        <a :href="registerUrl" class="mt-3 px-5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold transition">Sign up to unlock</a>
+                    </div>
+                </div>
+
+                {# ── Journal BLOCKED ── #}
+                <div class="relative rounded-2xl overflow-hidden">
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 pointer-events-none select-none opacity-40">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-xl">📝</span>
+                            <div><div class="text-sm font-semibold text-gray-800">Journal</div><div class="text-xs text-purple-500 font-medium">+30 XP</div></div>
+                        </div>
+                        <div class="h-16 bg-gray-50 border border-gray-100 rounded-xl mb-3"></div>
+                        <div class="flex gap-2"><div class="h-7 bg-purple-100 rounded-lg w-20"></div></div>
+                    </div>
+                    <div class="absolute inset-0 bg-white/85 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-2xl">
+                        <span class="text-3xl">🔒</span>
+                        <p class="font-bold text-gray-700 mt-2 text-sm">Journal</p>
+                        <p class="text-xs text-gray-400 mt-1">Write, reflect, process — +30 XP</p>
+                        <a :href="registerUrl" class="mt-3 px-5 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded-xl text-xs font-semibold transition">Sign up to unlock</a>
+                    </div>
+                </div>
+
+                {# ── Body Healing BLOCKED ── #}
+                <div class="relative rounded-2xl overflow-hidden">
+                    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 pointer-events-none select-none opacity-40">
+                        <h2 class="font-bold text-gray-900 mb-4 text-sm flex items-center gap-2">
+                            <span x-text="addiction==='smoking'?'🚬':(addiction==='cannabis'?'🌿':'🍺')"></span>
+                            <span x-text="healingTitle"></span>
+                        </h2>
+                        <div class="space-y-3">
+                            <template x-for="(m,i) in healingMilestones.slice(0,4)" :key="i">
+                                <div class="flex items-start gap-3" :class="m.achieved?'opacity-100':'opacity-40'">
+                                    <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0"
+                                         :class="m.achieved?'bg-teal-100 text-teal-700':'bg-gray-100 text-gray-400'">
+                                        <span x-text="m.achieved?'✓':'○'"></span>
+                                    </div>
+                                    <div>
+                                        <span class="font-semibold text-xs" x-text="m.label"></span>
+                                        <template x-if="m.achieved"><span class="ml-1 text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded-full">✓ Done</span></template>
+                                        <p class="text-xs text-gray-500 mt-0.5" x-text="m.desc"></p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 bg-white/85 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-2xl">
+                        <span class="text-3xl">🔒</span>
+                        <p class="font-bold text-gray-700 mt-2 text-sm">Body Healing Timeline</p>
+                        <p class="text-xs text-gray-400 mt-1">See exactly what's healing inside you</p>
+                        <a :href="registerUrl" class="mt-3 px-5 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold transition">Sign up to unlock</a>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+                    <p class="text-2xl mb-2">✨</p>
+                    <p class="font-bold text-gray-800 text-sm">And much more awaits</p>
+                    <p class="text-xs text-gray-500 mt-1 leading-relaxed">AI coaching, community forum, 18 achievements, XP system, push reminders, and a full daily check-in tracker.</p>
+                    <a :href="registerUrl" class="mt-3 inline-block px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold transition">Unlock everything — free →</a>
+                </div>
+
+            </div>
+
+            {# ── Sidebar ── #}
+            <div class="space-y-5">
+                <div class="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-5 text-white">
+                    <div class="text-2xl mb-2">🌿</div>
+                    <h3 class="font-black text-base leading-tight">Don't lose your streak</h3>
+                    <p class="text-white/75 text-xs mt-1.5 leading-relaxed">Sign up free to save your progress, unlock achievements, get AI coaching, and join the community.</p>
+                    <a :href="registerUrl" class="mt-4 block w-full py-2.5 bg-white text-indigo-700 rounded-xl text-sm font-bold text-center hover:bg-indigo-50 transition">Create free account →</a>
+                    <p class="text-center text-white/50 text-xs mt-2">No credit card. Free forever.</p>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-900 text-sm mb-3">🏆 Achievements</h3>
+                    <div class="space-y-2.5">
+                        <template x-for="badge in lockedBadges()" :key="badge.name">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-lg"
+                                     :class="badge.earned?'bg-amber-100':'bg-gray-100 grayscale opacity-40'">
+                                    <span x-text="badge.icon"></span>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-xs font-semibold" :class="badge.earned?'text-gray-800':'text-gray-400'" x-text="badge.name"></div>
+                                    <div class="text-[10px]" :class="badge.earned?'text-amber-600':'text-gray-300'" x-text="badge.desc"></div>
+                                </div>
+                                <span x-show="badge.earned" class="text-xs text-amber-500 font-bold">✓</span>
+                                <span x-show="!badge.earned" class="text-xs text-gray-300">🔒</span>
+                            </div>
+                        </template>
+                    </div>
+                    <a :href="registerUrl" class="block mt-4 text-center text-xs text-indigo-500 hover:underline font-medium">Sign up to unlock all 18 badges →</a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-900 text-sm mb-3">With a free account</h3>
+                    <ul class="space-y-2 text-xs text-gray-600">
+                        <li class="flex items-start gap-2"><span class="text-teal-500 font-bold mt-0.5">✓</span> Streak saved forever</li>
+                        <li class="flex items-start gap-2"><span class="text-teal-500 font-bold mt-0.5">✓</span> AI coach during cravings</li>
+                        <li class="flex items-start gap-2"><span class="text-teal-500 font-bold mt-0.5">✓</span> 18 achievements + XP</li>
+                        <li class="flex items-start gap-2"><span class="text-teal-500 font-bold mt-0.5">✓</span> Community forum</li>
+                        <li class="flex items-start gap-2"><span class="text-teal-500 font-bold mt-0.5">✓</span> Daily check-ins &amp; journal</li>
+                        <li class="flex items-start gap-2"><span class="text-teal-500 font-bold mt-0.5">✓</span> Full body healing timeline</li>
+                        <li class="flex items-start gap-2"><span class="text-teal-500 font-bold mt-0.5">✓</span> Push reminders</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-gradient-to-r from-teal-600 to-indigo-600 rounded-3xl p-8 text-center text-white">
+            <p class="text-2xl font-black mb-2">Ready to make it official?</p>
+            <p class="text-white/75 text-sm mb-5" x-text="days > 0 ? `Your streak of ${days} day${days !== 1 ? 's' : ''} deserves to be saved.` : 'Every journey starts with a single day. Save your progress and make it count.'"></p>
+            <a :href="registerUrl" class="inline-block px-8 py-3.5 bg-white text-brand-800 rounded-2xl font-bold text-base hover:bg-brand-50 hover:scale-105 transition-all shadow-xl">
+                Save my progress — Free →
+            </a>
+        </div>
+
+    </div>
+
+    <footer class="mt-6 py-5 pb-8 text-center text-xs text-gray-400">
+        <p>TheDayAfter — Free &amp; Open Source · <a href="/login" class="hover:text-gray-600">Sign in</a> · <a href="/register" class="hover:text-gray-600">Sign up</a></p>
+    </footer>
+
+</div>
+
+<script>
+function demoApp() {
+    return {
+        ready: false,
+
+        // Setup
+        setupAddiction: 'alcohol',
+        setupAlcoholDate:  '',
+        setupSmokingDate:  '',
+        setupCannabisDate: '',
+        setupCurrency: '$',
+        setupAlcoholCost: '',
+        setupSmokingCost: '',
+        setupCannabisCost: '',
+
+        // Live data
+        name: '',
+        addiction: 'alcohol',
+        dates: { alcohol: null, smoking: null, cannabis: null },
+        moods: [],
+        currency: '$',
+        costs: { alcohol: 0, smoking: 0, cannabis: 0 },
+
+        // Edit panel
+        editOpen: false,
+        editAddiction:  '',
+        editAlcoholDate:  '',
+        editSmokingDate:  '',
+        editCannabisDate: '',
+        editCurrency: '$',
+        editAlcoholCost: '',
+        editSmokingCost: '',
+        editCannabisCost: '',
+
+        // SOS
+        sosOpen: false,
+
+        // Mood
+        moodOpen: false,
+        moodNote: '',
+        moodScore: 5,
+        moodSaved: false,
+
+        get today() {
+            const d = new Date(), p = n => String(n).padStart(2,'0');
+            return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+        },
+
+        get setupReady() {
+            if (this.setupAddiction === 'alcohol')  return !!this.setupAlcoholDate;
+            if (this.setupAddiction === 'smoking')  return !!this.setupSmokingDate;
+            if (this.setupAddiction === 'cannabis') return !!this.setupCannabisDate;
+            if (this.setupAddiction === 'both')     return !!this.setupAlcoholDate && !!this.setupSmokingDate;
+            return false;
+        },
+
+        init() {
+            const t = this.today;
+            this.setupAlcoholDate  = t;
+            this.setupSmokingDate  = t;
+            this.setupCannabisDate = t;
+
+            const raw = localStorage.getItem('tda_demo');
+            if (raw) {
+                try {
+                    const d = JSON.parse(raw);
+                    this.name      = d.name || '';
+                    this.addiction = d.addiction || 'alcohol';
+                    this.dates     = Object.assign({ alcohol: null, smoking: null, cannabis: null }, d.dates || {});
+                    this.moods     = d.moods || [];
+                    this.currency  = d.currency || '$';
+                    this.costs     = Object.assign({ alcohol: 0, smoking: 0, cannabis: 0 }, d.costs || {});
+                    this.ready     = true;
+                } catch(e) { localStorage.removeItem('tda_demo'); }
+            }
+        },
+
+        persist() {
+            localStorage.setItem('tda_demo', JSON.stringify({
+                name: this.name, addiction: this.addiction,
+                dates: this.dates, moods: this.moods,
+                currency: this.currency, costs: this.costs,
+            }));
+        },
+
+        startDemo() {
+            if (!this.setupReady) return;
+            this.name      = '';
+            this.addiction = this.setupAddiction;
+            this.dates = {
+                alcohol:  this.setupAlcoholDate  ? new Date(this.setupAlcoholDate)  : null,
+                smoking:  this.setupSmokingDate  ? new Date(this.setupSmokingDate)  : null,
+                cannabis: this.setupCannabisDate ? new Date(this.setupCannabisDate) : null,
+            };
+            this.moods = [];
+            this.currency = this.setupCurrency;
+            this.costs = {
+                alcohol:  parseFloat(this.setupAlcoholCost)  || 0,
+                smoking:  parseFloat(this.setupSmokingCost)  || 0,
+                cannabis: parseFloat(this.setupCannabisCost) || 0,
+            };
+            this.persist();
+            this.ready = true;
+            this.$nextTick(() => window.scrollTo(0, 0));
+        },
+
+        openEdit() {
+            const fmt = d => {
+                if (!d) return this.today;
+                const dt = new Date(d);
+                const p = n => String(n).padStart(2, '0');
+                return `${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}T${p(dt.getHours())}:${p(dt.getMinutes())}`;
+            };
+            this.editAddiction    = this.addiction;
+            this.editAlcoholDate  = fmt(this.dates.alcohol);
+            this.editSmokingDate  = fmt(this.dates.smoking);
+            this.editCannabisDate = fmt(this.dates.cannabis);
+            this.editCurrency     = this.currency;
+            this.editAlcoholCost  = this.costs.alcohol  || '';
+            this.editSmokingCost  = this.costs.smoking  || '';
+            this.editCannabisCost = this.costs.cannabis || '';
+            this.editOpen = true;
+        },
+
+        saveEdit() {
+            this.addiction = this.editAddiction;
+            this.dates = {
+                alcohol:  this.editAlcoholDate  ? new Date(this.editAlcoholDate)  : null,
+                smoking:  this.editSmokingDate  ? new Date(this.editSmokingDate)  : null,
+                cannabis: this.editCannabisDate ? new Date(this.editCannabisDate) : null,
+            };
+            this.currency = this.editCurrency;
+            this.costs = {
+                alcohol:  parseFloat(this.editAlcoholCost)  || 0,
+                smoking:  parseFloat(this.editSmokingCost)  || 0,
+                cannabis: parseFloat(this.editCannabisCost) || 0,
+            };
+            this.persist();
+            this.editOpen = false;
+        },
+
+        get moodEmoji() {
+            const m = parseInt(this.moodScore);
+            if (m>=9) return '😄'; if (m>=7) return '😊'; if (m>=5) return '😐'; if (m>=3) return '😔'; return '😢';
+        },
+
+        toggleSOS() {
+            this.sosOpen = !this.sosOpen;
+            if (this.sosOpen) this.$nextTick(() => document.getElementById('demo-sos-block').scrollIntoView({behavior:'smooth', block:'nearest'}));
+        },
+
+        submitMood() {
+            this.moods = [...this.moods, { date: new Date().toISOString(), score: parseInt(this.moodScore), note: this.moodNote }];
+            this.moodNote = '';
+            this.moodOpen = false;
+            this.moodSaved = true;
+            this.persist();
+            setTimeout(() => this.moodSaved = false, 3000);
+        },
+
+        get alcoholDays() {
+            if (!this.dates.alcohol) return 0;
+            return Math.max(0, Math.floor((Date.now() - new Date(this.dates.alcohol).getTime()) / 86400000));
+        },
+        get smokingDays() {
+            if (!this.dates.smoking) return 0;
+            return Math.max(0, Math.floor((Date.now() - new Date(this.dates.smoking).getTime()) / 86400000));
+        },
+        get alcoholDateFormatted() {
+            if (!this.dates.alcohol) return '';
+            return new Date(this.dates.alcohol).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+        },
+        get smokingDateFormatted() {
+            if (!this.dates.smoking) return '';
+            return new Date(this.dates.smoking).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+        },
+
+        get moneySaved() {
+            const a = parseFloat(this.costs.alcohol)  || 0;
+            const s = parseFloat(this.costs.smoking)  || 0;
+            const c = parseFloat(this.costs.cannabis) || 0;
+            if (this.addiction === 'both')     return this.alcoholDays * a + this.smokingDays * s;
+            if (this.addiction === 'alcohol')  return this.days * a;
+            if (this.addiction === 'smoking')  return this.days * s;
+            if (this.addiction === 'cannabis') return this.days * c;
+            return 0;
+        },
+
+        get primaryDate() {
+            if (this.addiction === 'alcohol')  return this.dates.alcohol;
+            if (this.addiction === 'smoking')  return this.dates.smoking;
+            if (this.addiction === 'cannabis') return this.dates.cannabis;
+            // both: use earlier of alcohol/smoking
+            const a = this.dates.alcohol  ? new Date(this.dates.alcohol).getTime()  : Infinity;
+            const s = this.dates.smoking  ? new Date(this.dates.smoking).getTime()  : Infinity;
+            const earliest = Math.min(a, s);
+            return earliest === Infinity ? null : new Date(earliest);
+        },
+
+        get days() {
+            if (!this.primaryDate) return 0;
+            return Math.max(0, Math.floor((Date.now() - new Date(this.primaryDate).getTime()) / 86400000));
+        },
+
+        get addictionLabel() {
+            return { alcohol:'🍺 Alcohol-free', smoking:'🚬 Smoke-free', cannabis:'🌿 Cannabis-free', both:'🍺🚬 Alcohol & Smoke-free' }[this.addiction] || '';
+        },
+
+        get primaryDateFormatted() {
+            const d = this.primaryDate;
+            if (!d) return '';
+            return new Date(d).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+        },
+
+        get level() {
+            const d = this.days;
+            if (d>=365) return 7; if (d>=180) return 6; if (d>=90) return 5;
+            if (d>=30)  return 4; if (d>=7)   return 3; if (d>=1)  return 2;
+            return 1;
+        },
+
+        get levelName() {
+            return ['Awakening','Day One Hero','First Week','Building Strength','Deep Healing','Transformation','Beacon of Light'][this.level-1];
+        },
+
+        get registerUrl() {
+            const d = this.primaryDate;
+            const typeMap = { alcohol:'alcohol', smoking:'cigarettes', cannabis:'cannabis', both:'both' };
+            const params = new URLSearchParams({ addiction: typeMap[this.addiction]||'alcohol' });
+            if (d) {
+                const dt = new Date(d), p = n => String(n).padStart(2,'0');
+                params.set('quit_date', `${dt.getFullYear()}-${p(dt.getMonth()+1)}-${p(dt.getDate())}`);
+            }
+            if (this.name) params.set('name', this.name);
+            return '/register?' + params.toString();
+        },
+
+        get healingTitle() {
+            return { alcohol:'Alcohol-Free — Body Healing', smoking:'Smoke-Free — Body Healing', cannabis:'Cannabis-Free — Body Healing', both:'Alcohol-Free — Body Healing' }[this.addiction] || 'Body Healing';
+        },
+
+        get healingMilestones() {
+            const h = this.days * 24;
+            const alcohol = [
+                { label:'24 hours',  desc:'Blood sugar begins to stabilize',                  achieved: h>=24   },
+                { label:'72 hours',  desc:'Alcohol fully cleared from your system',            achieved: h>=72   },
+                { label:'1 week',    desc:'Sleep quality improves, anxiety reduces',           achieved: h>=168  },
+                { label:'2 weeks',   desc:'Liver begins active regeneration',                  achieved: h>=336  },
+                { label:'1 month',   desc:'Skin clearer, energy returning, brain fog lifting', achieved: h>=720  },
+                { label:'3 months',  desc:'Memory and cognition sharpen significantly',        achieved: h>=2160 },
+                { label:'6 months',  desc:'Liver function mostly restored',                    achieved: h>=4320 },
+                { label:'1 year',    desc:'Cancer and heart disease risk significantly reduced', achieved: h>=8760 },
+            ];
+            const smoking = [
+                { label:'20 minutes', desc:'Heart rate and blood pressure drop',               achieved: this.days>=0 && h*60>=20 },
+                { label:'8 hours',    desc:'Carbon monoxide in blood drops by half',           achieved: h>=8    },
+                { label:'24 hours',   desc:'Heart attack risk begins to decrease',             achieved: h>=24   },
+                { label:'48 hours',   desc:'Smell and taste start to return',                  achieved: h>=48   },
+                { label:'2 weeks',    desc:'Circulation improves, walking feels easier',       achieved: h>=336  },
+                { label:'1 month',    desc:'Coughing and shortness of breath reduce',          achieved: h>=720  },
+                { label:'3 months',   desc:'Lung function increases up to 30%',                achieved: h>=2160 },
+                { label:'1 year',     desc:'Risk of coronary heart disease halved',            achieved: h>=8760 },
+            ];
+            const cannabis = [
+                { label:'24 hours',  desc:'THC levels in blood begin to drop',                achieved: h>=24   },
+                { label:'72 hours',  desc:'Sleep patterns start to normalize',                 achieved: h>=72   },
+                { label:'1 week',    desc:'Anxiety and irritability begin to ease',            achieved: h>=168  },
+                { label:'2 weeks',   desc:'Appetite and mood stabilize',                       achieved: h>=336  },
+                { label:'1 month',   desc:'Memory and focus noticeably sharper',               achieved: h>=720  },
+                { label:'3 months',  desc:'Lung function improves (if smoked)',                achieved: h>=2160 },
+                { label:'6 months',  desc:'Motivation and emotional balance restored',         achieved: h>=4320 },
+                { label:'1 year',    desc:'Full cognitive recovery for most people',           achieved: h>=8760 },
+            ];
+            if (this.addiction==='smoking')  return smoking;
+            if (this.addiction==='cannabis') return cannabis;
+            return alcohol;
+        },
+
+        deleteAll() {
+            localStorage.removeItem('tda_demo');
+            localStorage.removeItem('tda_demo_banner');
+            this.ready = false;
+            this.moods = [];
+            this.dates = { alcohol: null, smoking: null, cannabis: null };
+            const t = this.today;
+            this.setupAlcoholDate = t;
+            this.setupSmokingDate = t;
+            this.setupCannabisDate = t;
+            this.setupAddiction = 'alcohol';
+            this.currency = '$';
+            this.costs = { alcohol: 0, smoking: 0, cannabis: 0 };
+            this.setupCurrency = '$';
+            this.setupAlcoholCost = '';
+            this.setupSmokingCost = '';
+            this.setupCannabisCost = '';
+        },
+
+        renderMoodChart(moods) {
+            const svg = document.getElementById('demo-mood-svg');
+            if (!svg) return;
+            svg.innerHTML = '';
+            if (!moods || moods.length === 0) return;
+            const NS = 'http://www.w3.org/2000/svg';
+            const el = (tag, attrs) => {
+                const e = document.createElementNS(NS, tag);
+                for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+                return e;
+            };
+            const txt = (tag, attrs, text) => { const e = el(tag, attrs); e.textContent = text; return e; };
+            const cW=460, cH=120, cL=24, cT=8, cB=20, n=moods.length;
+            // Y gridlines
+            for (const yv of [1,2,4,6,8,10]) {
+                const gy = Math.round(cT + (10-yv)/10*cH);
+                svg.appendChild(el('line', {x1:cL,y1:gy,x2:cL+cW,y2:gy,stroke:[1,10].includes(yv)?'#e5e7eb':'#f3f4f6','stroke-width':1}));
+                svg.appendChild(txt('text', {x:cL-4,y:gy+3,'text-anchor':'end','font-size':8,fill:'#9ca3af'}, yv));
+            }
+            // Points
+            const pts = moods.map((m,i) => ({
+                ix: Math.round(cL + (n>1 ? i/(n-1) : 0.5)*cW),
+                iy: Math.round(cT + (10-m.score)/10*cH),
+                m,
+            }));
+            // X date labels
+            let prevDay = '';
+            pts.forEach(({ix,m}) => {
+                const day = new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+                if (day !== prevDay) {
+                    svg.appendChild(el('line',{x1:ix,y1:cT,x2:ix,y2:cT+cH,stroke:'#f9fafb','stroke-width':1}));
+                    svg.appendChild(txt('text',{x:ix,y:cT+cH+cB-4,'text-anchor':'middle','font-size':8,fill:'#9ca3af'},day));
+                    prevDay = day;
+                }
+            });
+            // Line
+            if (n > 1) svg.appendChild(el('polyline',{points:pts.map(p=>`${p.ix},${p.iy}`).join(' '),fill:'none',stroke:'#6366f1','stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
+            // Dots
+            const wrap = document.getElementById('demo-mood-chart-wrap');
+            const tip  = document.getElementById('demo-mood-tip');
+            const tipDate = document.getElementById('demo-mood-tip-date');
+            const tipMood = document.getElementById('demo-mood-tip-mood');
+            pts.forEach(({ix,iy,m}) => {
+                const c = el('circle',{cx:ix,cy:iy,r:5,fill:'#6366f1',stroke:'white','stroke-width':1.5});
+                c.style.cursor = 'pointer';
+                const day = new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+                c.addEventListener('mouseenter', () => { tipDate.textContent=day; tipMood.textContent='Mood: '+m.score+'/10'; tip.classList.remove('hidden'); });
+                c.addEventListener('mousemove', e => { const r=wrap.getBoundingClientRect(); tip.style.left=(e.clientX-r.left+12)+'px'; tip.style.top=(e.clientY-r.top-52)+'px'; });
+                c.addEventListener('mouseleave', () => tip.classList.add('hidden'));
+                svg.appendChild(c);
+            });
+        },
+
+        lockedBadges() {
+            const d = this.days;
+            return [
+                { icon:'🌱', name:'First Step',     desc:'Day 1 clean',        earned: d>=1  },
+                { icon:'🌿', name:'One Week',       desc:'7 days clean',       earned: d>=7  },
+                { icon:'💪', name:'One Month',      desc:'30 days clean',      earned: d>=30 },
+                { icon:'📝', name:'Journal Writer', desc:'Write a journal',    earned: false },
+                { icon:'🧘', name:'Craving Hero',   desc:'Survive a craving',  earned: false },
+                { icon:'🔥', name:'90 Days',        desc:'3 months clean',     earned: d>=90 },
+            ];
+        },
+    };
+}
+
+function breathingExercise() {
+    return {
+        breathing: false, breatheCount: 4, breathePhase: 'Press Start',
+        breatheScale: 1, breatheOpacity: 0.7, _timer: null,
+        toggleBreathing() {
+            this.breathing = !this.breathing;
+            if (this.breathing) this.runCycle();
+            else { clearTimeout(this._timer); this.breathePhase='Press Start'; this.breatheCount=4; this.breatheScale=1; this.breatheOpacity=0.7; }
+        },
+        runCycle() { this.runPhase('Breathe in...', 4, 1.3, 1); },
+        runPhase(label, secs, scale, opacity) {
+            this.breathePhase=label; this.breatheScale=scale; this.breatheOpacity=opacity;
+            let count=secs; this.breatheCount=count;
+            const tick = () => {
+                count--; this.breatheCount=count;
+                if (count>0) { this._timer=setTimeout(tick,1000); }
+                else {
+                    if (!this.breathing) return;
+                    if (label==='Breathe in...')  this.runPhase('Hold...',7,1.3,0.9);
+                    else if (label==='Hold...')   this.runPhase('Breathe out...',8,0.8,0.5);
+                    else                          this.runCycle();
+                }
+            };
+            this._timer=setTimeout(tick,1000);
+        },
+    };
+}
+</script>
+
+</body>
+</html>
