@@ -36,6 +36,9 @@ php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migratio
 echo "==> Seeding achievements..."
 php bin/console app:seed-achievements --no-interaction 2>/dev/null || true
 
+echo "==> Clearing old cache..."
+rm -rf var/cache/*
+
 echo "==> Warming cache..."
 php bin/console cache:warmup --no-interaction 2>/dev/null || true
 
