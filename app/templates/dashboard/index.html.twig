@@ -272,10 +272,11 @@
                 <div class="flex items-end gap-2 h-24">
                     {% for checkin in recent_checkins|reverse %}
                     <div class="flex-1 flex flex-col items-center gap-1">
+                        <span class="text-xs font-bold text-indigo-600">{{ checkin.mood }}</span>
                         <div class="w-full rounded-t-lg"
                              style="height: {{ (checkin.mood / 10 * 76)|round }}px; background: linear-gradient(to top, #14b8a6, #6366f1); min-height: 4px;"
                              title="Mood {{ checkin.mood }}/10 on {{ checkin.createdAt|date('M j', user.timezone) }}"></div>
-                        <span class="text-xs text-gray-400">{{ checkin.createdAt|date('j', user.timezone) }}</span>
+                        <span class="text-xs text-gray-400 text-center leading-tight">{{ checkin.createdAt|date('M j \'y', user.timezone) }}</span>
                     </div>
                     {% endfor %}
                 </div>
