@@ -41,14 +41,14 @@ class SendMoodRemindersCommand extends Command
         ]);
 
         $now = new \DateTime();
-        $threeHoursAgo = (new \DateTime())->modify('-3 hours');
+        $oneHourAgo = (new \DateTime())->modify('-1 hour');
 
         $sent = 0;
         $subscriptions = $this->repo->findAll();
 
         foreach ($subscriptions as $sub) {
-            // Skip if notified less than 3 hours ago
-            if ($sub->getLastNotifiedAt() && $sub->getLastNotifiedAt() > $threeHoursAgo) {
+            // Skip if notified less than 1 hour ago
+            if ($sub->getLastNotifiedAt() && $sub->getLastNotifiedAt() > $oneHourAgo) {
                 continue;
             }
 
@@ -57,7 +57,7 @@ class SendMoodRemindersCommand extends Command
                 ['user' => $sub->getUser()],
                 ['createdAt' => 'DESC']
             );
-            if ($recentLog && $recentLog->getCreatedAt() > $threeHoursAgo) {
+            if ($recentLog && $recentLog->getCreatedAt() > $oneHourAgo) {
                 continue;
             }
 
