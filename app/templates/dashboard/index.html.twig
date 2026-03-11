@@ -431,6 +431,15 @@
     <button id="pwa-dismiss" class="flex-shrink-0 text-white/50 hover:text-white text-lg leading-none">✕</button>
 </div>
 <script>
+// Force fresh load when PWA is restored from cache (Android + iOS)
+window.addEventListener('pageshow', function (e) {
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (standalone && e.persisted) {
+        window.location.reload();
+    }
+});
+</script>
+<script>
 (function () {
     if (localStorage.getItem('pwa-dismissed')) return;
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) return;
