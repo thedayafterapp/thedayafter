@@ -265,24 +265,6 @@
             </div>
             {% endfor %}
 
-            {# Mood chart #}
-            {% if recent_checkins is not empty %}
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 class="font-bold text-gray-900 mb-4">📊 Recent Mood</h2>
-                <div class="flex items-end gap-2 h-24">
-                    {% for checkin in recent_checkins|reverse %}
-                    <div class="flex-1 flex flex-col items-center gap-1">
-                        <span class="text-xs font-bold text-indigo-600">{{ checkin.mood }}</span>
-                        <div class="w-full rounded-t-lg"
-                             style="height: {{ (checkin.mood / 10 * 76)|round }}px; background: linear-gradient(to top, #14b8a6, #6366f1); min-height: 4px;"
-                             title="Mood {{ checkin.mood }}/10 on {{ checkin.createdAt|date('M j', user.timezone) }}"></div>
-                        <span class="text-xs text-gray-400 text-center leading-tight">{{ checkin.createdAt|date('M j \'y', user.timezone) }}</span>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
         </div>
 
         {# Right sidebar #}
@@ -370,6 +352,27 @@
                     {% endfor %}
                 </div>
                 <a href="{{ path('app_journal') }}" class="block mt-4 text-center text-sm text-brand-600 hover:underline font-medium">Open journal →</a>
+            </div>
+            {% endif %}
+
+            {# Mood chart #}
+            {% if recent_checkins is not empty %}
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-gray-900">📊 Recent Mood</h2>
+                    <a href="{{ path('app_checkin') }}" class="text-xs text-brand-600 hover:underline">from check-ins →</a>
+                </div>
+                <div class="flex items-end gap-2 h-24 mt-6">
+                    {% for checkin in recent_checkins|reverse %}
+                    <div class="flex-1 flex flex-col items-center gap-1">
+                        <span class="text-xs font-bold text-indigo-600">{{ checkin.mood }}</span>
+                        <div class="w-full rounded-t-lg"
+                             style="height: {{ (checkin.mood / 10 * 76)|round }}px; background: linear-gradient(to top, #14b8a6, #6366f1); min-height: 4px;"
+                             title="Mood {{ checkin.mood }}/10 on {{ checkin.createdAt|date('M j', user.timezone) }}"></div>
+                        <span class="text-xs text-gray-400 text-center leading-tight">{{ checkin.createdAt|date('M j \'y', user.timezone) }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
             {% endif %}
 
