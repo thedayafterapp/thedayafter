@@ -249,18 +249,16 @@
 </nav>
 {% endif %}
 
-<main class="{% if app.user %}min-h-screen pb-20 md:pb-0{% endif %}">
+<main class="{% if app.user %}pb-20 md:pb-0{% endif %}">
     {% block body %}{% endblock %}
 </main>
 
 {% if app.user %}
-<footer class="bg-white border-t border-gray-200 mt-4 md:mt-12 py-6 pb-24 md:pb-6 text-center text-sm text-gray-500">
-    <p>TheDayAfter - You are stronger than you think. Every day counts. 💚</p>
-    <p class="mt-2 flex items-center justify-center gap-3">
+<footer class="bg-white border-t border-gray-200 mt-2 py-5 pb-24 md:pb-5 text-center text-sm text-gray-500">
+    <p class="font-medium">TheDayAfter — You are stronger than you think. 💚</p>
+    <p class="mt-2 flex items-center justify-center gap-3 flex-wrap">
         <a href="https://github.com/thedayafterapp/thedayafter" target="_blank" rel="noopener"
-           class="hover:text-gray-800 transition">⭐ Open source on GitHub</a>
-        <span class="text-gray-300">·</span>
-        <span>MIT License</span>
+           class="hover:text-gray-800 transition">⭐ Open source on GitHub (MIT License)</a>
         <span class="text-gray-300">·</span>
         <span>Free forever</span>
         <span class="text-gray-300">·</span>
