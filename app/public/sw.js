@@ -1,3 +1,9 @@
+self.addEventListener('fetch', function (e) {
+    if (e.request.mode === 'navigate') {
+        e.respondWith(fetch(e.request));
+    }
+});
+
 self.addEventListener('push', function (e) {
     const data = e.data ? e.data.json() : {};
     const title = data.title || 'TheDayAfter';
