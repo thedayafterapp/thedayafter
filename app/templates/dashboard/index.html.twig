@@ -273,9 +273,9 @@
                     {% for checkin in recent_checkins|reverse %}
                     <div class="flex-1 flex flex-col items-center gap-1">
                         <div class="w-full rounded-t-lg"
-                             style="height: {{ (checkin.mood / 10 * 100)|round }}%; background: linear-gradient(to top, #14b8a6, #6366f1); min-height: 4px;"
-                             title="Mood {{ checkin.mood }}/10 on {{ checkin.createdAt|date('M j') }}"></div>
-                        <span class="text-xs text-gray-400">{{ checkin.createdAt|date('j') }}</span>
+                             style="height: {{ (checkin.mood / 10 * 76)|round }}px; background: linear-gradient(to top, #14b8a6, #6366f1); min-height: 4px;"
+                             title="Mood {{ checkin.mood }}/10 on {{ checkin.createdAt|date('M j', user.timezone) }}"></div>
+                        <span class="text-xs text-gray-400">{{ checkin.createdAt|date('j', user.timezone) }}</span>
                     </div>
                     {% endfor %}
                 </div>
