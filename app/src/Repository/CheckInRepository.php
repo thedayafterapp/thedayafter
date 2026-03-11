@@ -37,8 +37,9 @@ class CheckInRepository extends ServiceEntityRepository
 
     public function hadCheckInToday(User $user): bool
     {
-        $today    = new \DateTime('today');
-        $tomorrow = new \DateTime('tomorrow');
+        $tz       = new \DateTimeZone($user->getTimezone());
+        $today    = (new \DateTime('today', $tz))->setTimezone(new \DateTimeZone('UTC'));
+        $tomorrow = (new \DateTime('tomorrow', $tz))->setTimezone(new \DateTimeZone('UTC'));
         $count = (int) $this->createQueryBuilder('c')
             ->select('COUNT(c.id)')
             ->where('c.user = :user AND c.createdAt >= :today AND c.createdAt < :tomorrow')
@@ -52,7 +53,8 @@ class CheckInRepository extends ServiceEntityRepository
 
     public function getWeeklyStats(User $user): array
     {
-        $weekStart = new \DateTime('monday this week midnight');
+        $tz        = new \DateTimeZone($user->getTimezone());
+        $weekStart = (new \DateTime('monday this week midnight', $tz))->setTimezone(new \DateTimeZone('UTC'));
         $checkIns  = $this->createQueryBuilder('c')
             ->where('c.user = :user AND c.createdAt >= :start')
             ->setParameter('user', $user)
