@@ -97,7 +97,7 @@ class CheckInRepository extends ServiceEntityRepository
         foreach ($checkIns as $ci) {
             $dow = (int) $ci->getCreatedAt()->format('w');
             $dayTotal[$dow]++;
-            if ($ci->getCravingIntensity() >= 5) {
+            if ($ci->getCravingIntensity() >= 7) {
                 $dayCravings[$dow]++;
             }
             foreach ($ci->getTriggers() as $trigger) {
