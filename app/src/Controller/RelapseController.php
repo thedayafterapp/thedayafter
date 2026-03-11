@@ -74,7 +74,8 @@ class RelapseController extends AbstractController
         }
         $type          = $request->request->get('addiction_type', $user->getAddictionType());
         $notes         = $request->request->get('notes');
-        $newQuitDate   = new \DateTime('today');
+        $tz          = new \DateTimeZone($user->getTimezone());
+        $newQuitDate = new \DateTime('today', $tz);
 
         // Log the relapse before resetting
         $moneySaved = $user->getMoneySaved($type === 'both' ? 'total' : $type);
