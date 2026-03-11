@@ -114,9 +114,10 @@
 <div x-show="ready" x-cloak class="pt-14">
 
     {# Always-visible preview banner #}
-    <div class="bg-indigo-600 text-white px-4 py-2.5 text-center text-xs sm:text-sm">
-        👋 <strong>Preview mode</strong> — your data is only on this device.
-        <a :href="registerUrl" class="underline font-semibold ml-1">Sign up free to save it forever →</a>
+    <div class="bg-indigo-600 text-white px-4 py-3 text-center text-xs sm:text-sm">
+        👋 <strong>Preview mode</strong> — features are limited &amp; data lives only on this device.
+        <span class="hidden sm:inline text-indigo-200 mx-1">·</span>
+        <span class="block sm:inline mt-0.5 sm:mt-0"><a :href="registerUrl" class="underline font-semibold">Sign up free</a> for full functionality, mood insights, AI coaching &amp; more →</span>
     </div>
 
     <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10" style="contain:strict">
@@ -440,6 +441,10 @@
                             <button @click="submitMood()" class="px-4 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-semibold rounded-lg transition">Log it</button>
                             <span x-show="moodSaved" x-cloak class="text-xs text-green-600 font-medium">✓ Saved!</span>
                         </div>
+                        <p class="text-[10px] text-gray-400 leading-snug pt-1">
+                            Demo: saves to this device only.
+                            <a :href="registerUrl" class="text-indigo-400 hover:text-indigo-600 underline font-medium">Sign up</a> for mood trends, pattern insights &amp; cloud sync.
+                        </p>
                     </div>
                 </div>
 
