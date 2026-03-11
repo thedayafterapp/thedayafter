@@ -70,6 +70,86 @@
                     </div>
                 </div>
 
+                {# Timezone #}
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-sm font-semibold text-gray-700">Timezone</label>
+                        <button type="button" @click="detectTz()"
+                                class="text-xs text-brand-600 hover:underline">📍 Auto-detect</button>
+                    </div>
+                    <select x-ref="tzSel" @change="tz = $event.target.value"
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 transition text-sm">
+                        {% set timezones = {
+                            'UTC': 'UTC',
+                            'America/New_York': 'America — New York (ET)',
+                            'America/Chicago': 'America — Chicago (CT)',
+                            'America/Denver': 'America — Denver (MT)',
+                            'America/Los_Angeles': 'America — Los Angeles (PT)',
+                            'America/Phoenix': 'America — Phoenix (MST)',
+                            'America/Anchorage': 'America — Anchorage (AKT)',
+                            'America/Honolulu': 'America — Honolulu (HST)',
+                            'America/Toronto': 'America — Toronto (ET)',
+                            'America/Vancouver': 'America — Vancouver (PT)',
+                            'America/Mexico_City': 'America — Mexico City (CST)',
+                            'America/Sao_Paulo': 'America — São Paulo (BRT)',
+                            'America/Argentina/Buenos_Aires': 'America — Buenos Aires (ART)',
+                            'America/Bogota': 'America — Bogotá (COT)',
+                            'America/Lima': 'America — Lima (PET)',
+                            'Europe/London': 'Europe — London (GMT/BST)',
+                            'Europe/Lisbon': 'Europe — Lisbon (WET)',
+                            'Europe/Paris': 'Europe — Paris (CET)',
+                            'Europe/Berlin': 'Europe — Berlin (CET)',
+                            'Europe/Rome': 'Europe — Rome (CET)',
+                            'Europe/Madrid': 'Europe — Madrid (CET)',
+                            'Europe/Amsterdam': 'Europe — Amsterdam (CET)',
+                            'Europe/Stockholm': 'Europe — Stockholm (CET)',
+                            'Europe/Warsaw': 'Europe — Warsaw (CET)',
+                            'Europe/Zurich': 'Europe — Zurich (CET)',
+                            'Europe/Athens': 'Europe — Athens (EET)',
+                            'Europe/Helsinki': 'Europe — Helsinki (EET)',
+                            'Europe/Istanbul': 'Europe — Istanbul (TRT)',
+                            'Europe/Moscow': 'Europe — Moscow (MSK)',
+                            'Europe/Kiev': 'Europe — Kyiv (EET)',
+                            'Asia/Dubai': 'Asia — Dubai (GST)',
+                            'Asia/Kolkata': 'Asia — Kolkata (IST)',
+                            'Asia/Dhaka': 'Asia — Dhaka (BST)',
+                            'Asia/Bangkok': 'Asia — Bangkok (ICT)',
+                            'Asia/Singapore': 'Asia — Singapore (SGT)',
+                            'Asia/Hong_Kong': 'Asia — Hong Kong (HKT)',
+                            'Asia/Shanghai': 'Asia — Shanghai (CST)',
+                            'Asia/Tokyo': 'Asia — Tokyo (JST)',
+                            'Asia/Seoul': 'Asia — Seoul (KST)',
+                            'Asia/Jakarta': 'Asia — Jakarta (WIB)',
+                            'Australia/Perth': 'Australia — Perth (AWST)',
+                            'Australia/Brisbane': 'Australia — Brisbane (AEST)',
+                            'Australia/Sydney': 'Australia — Sydney (AEDT)',
+                            'Australia/Melbourne': 'Australia — Melbourne (AEDT)',
+                            'Pacific/Auckland': 'Pacific — Auckland (NZST)',
+                            'Africa/Cairo': 'Africa — Cairo (EET)',
+                            'Africa/Johannesburg': 'Africa — Johannesburg (SAST)',
+                            'Africa/Lagos': 'Africa — Lagos (WAT)'
+                        } %}
+                        {% for val, label in timezones %}
+                        <option value="{{ val }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">
+                        Current: <span class="font-medium text-gray-600" x-text="tz"></span>
+                    </p>
+                </div>
+
+                {# Currency — shown only when a track is selected #}
+                <div x-show="type === 'alcohol' || type === 'cigarettes' || type === 'both' || type === 'cannabis'">
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Currency <span class="font-normal text-gray-400">— used to calculate money saved</span></label>
+                    <select name="currency" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 transition">
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="GBP">GBP (£)</option>
+                        <option value="CAD">CAD ($)</option>
+                        <option value="AUD">AUD ($)</option>
+                    </select>
+                </div>
+
                 {# Cannabis track #}
                 <div x-show="type === 'cannabis'" class="space-y-3 p-4 bg-green-50 border border-green-100 rounded-xl">
                     <p class="text-sm font-semibold text-green-700">🌿 Cannabis Track</p>
@@ -87,18 +167,6 @@
                                    placeholder="e.g. 15.00">
                         </div>
                     </div>
-                </div>
-
-                {# Currency — shown only when a track is selected #}
-                <div x-show="type === 'alcohol' || type === 'cigarettes' || type === 'both' || type === 'cannabis'">
-                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Currency <span class="font-normal text-gray-400">— used to calculate money saved</span></label>
-                    <select name="currency" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 transition">
-                        <option value="USD">USD ($)</option>
-                        <option value="EUR">EUR (€)</option>
-                        <option value="GBP">GBP (£)</option>
-                        <option value="CAD">CAD ($)</option>
-                        <option value="AUD">AUD ($)</option>
-                    </select>
                 </div>
 
                 {# Alcohol track #}
@@ -146,75 +214,6 @@
                     <textarea name="motivation" rows="2"
                               class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 resize-none text-sm"
                               placeholder="For my kids. For my health. Because I deserve better. Because I'm tired of losing…"></textarea>
-                </div>
-
-                <div>
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-sm font-semibold text-gray-700">Timezone</label>
-                            <button type="button" @click="detectTz()"
-                                    class="text-xs text-brand-600 hover:underline">📍 Auto-detect</button>
-                        </div>
-                        <select x-ref="tzSel" @change="tz = $event.target.value"
-                                class="w-full px-3 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-400 transition text-sm">
-                            {% set timezones = {
-                                'UTC': 'UTC',
-                                'America/New_York': 'America — New York (ET)',
-                                'America/Chicago': 'America — Chicago (CT)',
-                                'America/Denver': 'America — Denver (MT)',
-                                'America/Los_Angeles': 'America — Los Angeles (PT)',
-                                'America/Phoenix': 'America — Phoenix (MST)',
-                                'America/Anchorage': 'America — Anchorage (AKT)',
-                                'America/Honolulu': 'America — Honolulu (HST)',
-                                'America/Toronto': 'America — Toronto (ET)',
-                                'America/Vancouver': 'America — Vancouver (PT)',
-                                'America/Mexico_City': 'America — Mexico City (CST)',
-                                'America/Sao_Paulo': 'America — São Paulo (BRT)',
-                                'America/Argentina/Buenos_Aires': 'America — Buenos Aires (ART)',
-                                'America/Bogota': 'America — Bogotá (COT)',
-                                'America/Lima': 'America — Lima (PET)',
-                                'Europe/London': 'Europe — London (GMT/BST)',
-                                'Europe/Lisbon': 'Europe — Lisbon (WET)',
-                                'Europe/Paris': 'Europe — Paris (CET)',
-                                'Europe/Berlin': 'Europe — Berlin (CET)',
-                                'Europe/Rome': 'Europe — Rome (CET)',
-                                'Europe/Madrid': 'Europe — Madrid (CET)',
-                                'Europe/Amsterdam': 'Europe — Amsterdam (CET)',
-                                'Europe/Stockholm': 'Europe — Stockholm (CET)',
-                                'Europe/Warsaw': 'Europe — Warsaw (CET)',
-                                'Europe/Zurich': 'Europe — Zurich (CET)',
-                                'Europe/Athens': 'Europe — Athens (EET)',
-                                'Europe/Helsinki': 'Europe — Helsinki (EET)',
-                                'Europe/Istanbul': 'Europe — Istanbul (TRT)',
-                                'Europe/Moscow': 'Europe — Moscow (MSK)',
-                                'Europe/Kiev': 'Europe — Kyiv (EET)',
-                                'Asia/Dubai': 'Asia — Dubai (GST)',
-                                'Asia/Kolkata': 'Asia — Kolkata (IST)',
-                                'Asia/Dhaka': 'Asia — Dhaka (BST)',
-                                'Asia/Bangkok': 'Asia — Bangkok (ICT)',
-                                'Asia/Singapore': 'Asia — Singapore (SGT)',
-                                'Asia/Hong_Kong': 'Asia — Hong Kong (HKT)',
-                                'Asia/Shanghai': 'Asia — Shanghai (CST)',
-                                'Asia/Tokyo': 'Asia — Tokyo (JST)',
-                                'Asia/Seoul': 'Asia — Seoul (KST)',
-                                'Asia/Jakarta': 'Asia — Jakarta (WIB)',
-                                'Australia/Perth': 'Australia — Perth (AWST)',
-                                'Australia/Brisbane': 'Australia — Brisbane (AEST)',
-                                'Australia/Sydney': 'Australia — Sydney (AEDT)',
-                                'Australia/Melbourne': 'Australia — Melbourne (AEDT)',
-                                'Pacific/Auckland': 'Pacific — Auckland (NZST)',
-                                'Africa/Cairo': 'Africa — Cairo (EET)',
-                                'Africa/Johannesburg': 'Africa — Johannesburg (SAST)',
-                                'Africa/Lagos': 'Africa — Lagos (WAT)'
-                            } %}
-                            {% for val, label in timezones %}
-                            <option value="{{ val }}">{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                        <p class="text-xs text-gray-400 mt-1">
-                            Current: <span class="font-medium text-gray-600" x-text="tz"></span>
-                        </p>
-                    </div>
                 </div>
 
                 <button type="submit" class="w-full py-4 bg-gradient-to-r from-brand-600 to-teal-600 text-white rounded-xl font-bold text-lg hover:opacity-90 transition shadow-md">
