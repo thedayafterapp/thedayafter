@@ -276,7 +276,19 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
         var target = document.getElementById(id);
         if (!target) return;
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var container = document.body;
+        var start = container.scrollTop;
+        var end = target.getBoundingClientRect().top + start - 64;
+        var duration = 600;
+        var startTime = null;
+        function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+        function step(now) {
+            if (!startTime) startTime = now;
+            var p = Math.min((now - startTime) / duration, 1);
+            container.scrollTop = start + (end - start) * ease(p);
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
     });
 });
 </script>
