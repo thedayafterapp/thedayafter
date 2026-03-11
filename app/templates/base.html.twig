@@ -268,5 +268,70 @@
 {% endif %}
 
 {% block scripts %}{% endblock %}
+
+{% if app.user %}
+<div id="pwa-banner" class="hidden fixed bottom-20 left-3 right-3 z-50 bg-gray-900 text-white rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3 md:hidden">
+    <span class="text-2xl flex-shrink-0">📱</span>
+    <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold" id="pwa-title">Add to Home Screen</p>
+        <p class="text-xs text-white/70 mt-0.5" id="pwa-desc">Get the full app experience</p>
+    </div>
+    <button id="pwa-action" class="flex-shrink-0 px-3 py-1.5 bg-white text-gray-900 rounded-xl text-xs font-bold">Add</button>
+    <button id="pwa-dismiss" class="flex-shrink-0 text-white/50 hover:text-white text-lg leading-none">✕</button>
+</div>
+<script>
+(function () {
+    if (localStorage.getItem('pwa-dismissed')) return;
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) return;
+
+    const banner   = document.getElementById('pwa-banner');
+    const title    = document.getElementById('pwa-title');
+    const desc     = document.getElementById('pwa-desc');
+    const action   = document.getElementById('pwa-action');
+    const dismiss  = document.getElementById('pwa-dismiss');
+
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+    let deferredPrompt = null;
+
+    function show() {
+        banner.classList.remove('hidden');
+        banner.classList.add('flex');
+    }
+
+    function hide() {
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+        localStorage.setItem('pwa-dismissed', '1');
+    }
+
+    dismiss.addEventListener('click', hide);
+
+    if (isIOS) {
+        title.textContent = 'Add to Home Screen';
+        desc.textContent = 'Tap Share then "Add to Home Screen"';
+        action.textContent = 'How?';
+        action.addEventListener('click', function () {
+            alert('Tap the Share button (⬆) at the bottom of Safari, then choose "Add to Home Screen".');
+        });
+        setTimeout(show, 3000);
+        return;
+    }
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        title.textContent = 'Add to Home Screen';
+        desc.textContent = 'Install for a faster, app-like experience';
+        action.addEventListener('click', async function () {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') hide();
+            deferredPrompt = null;
+        });
+        setTimeout(show, 3000);
+    });
+})();
+</script>
+{% endif %}
 </body>
 </html>
