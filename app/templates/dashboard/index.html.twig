@@ -180,7 +180,10 @@
 
             {# Weekly review #}
             <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <h2 class="font-bold text-gray-900 mb-4">📅 This Week</h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-gray-900">📅 This Week</h2>
+                    <a href="{{ path('app_checkin') }}" class="text-xs text-gray-400 hover:text-teal-600 transition">from daily check-ins →</a>
+                </div>
                 <div class="grid grid-cols-3 gap-4 text-center">
                     <div>
                         <div class="text-2xl font-black text-brand-600">{{ weekly_stats.checkin_count }}</div>
