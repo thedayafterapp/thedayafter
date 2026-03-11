@@ -21,7 +21,7 @@ final class Version20240101000009 extends AbstractMigration
             PRIMARY KEY(id)
         ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB');
 
-        $this->addSql('ALTER TABLE mood_log ADD CONSTRAINT FK_mood_log_user FOREIGN KEY (user_id) REFERENCES user(id)');
+        $this->addSql('ALTER TABLE mood_log ADD CONSTRAINT FK_mood_log_user FOREIGN KEY (user_id) REFERENCES `user`(id)');
     }
 
     public function down(Schema $schema): void
