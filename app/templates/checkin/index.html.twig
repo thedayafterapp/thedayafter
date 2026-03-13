@@ -128,7 +128,7 @@
                         {% endif %}
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
-                        <div class="text-xs text-gray-400">{{ c.createdAt|date('M j · g:i a', user.timezone) }}</div>
+                        <div class="text-xs text-gray-400">{{ c.createdAt|date('D · M j · g:i a', user.timezone) }}</div>
                         <button type="button" @click="editing = !editing"
                                 class="text-gray-300 hover:text-indigo-400 transition" title="Edit">✏️</button>
                         <form method="POST" action="{{ path('app_checkin_delete', {id: c.id}) }}"

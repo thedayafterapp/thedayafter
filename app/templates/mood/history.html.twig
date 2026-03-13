@@ -134,8 +134,7 @@
             dot.addEventListener('click', function () {
                 const entry = document.getElementById(dot.dataset.entry);
                 if (!entry) return;
-                const top = entry.getBoundingClientRect().top + window.scrollY - (window.innerHeight / 2) + (entry.offsetHeight / 2);
-                window.scrollTo({ top: top, behavior: 'smooth' });
+                entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 entry.style.transition = 'box-shadow 0.3s';
                 entry.style.boxShadow = '0 0 0 3px #6366f1';
                 setTimeout(function () { entry.style.boxShadow = ''; }, 1500);
@@ -154,7 +153,7 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
                         <span class="font-bold text-indigo-600" x-text="(editing ? score : {{ log.mood }}) + '/10'"></span>
-                        <span class="text-xs text-gray-400">{{ log.createdAt|date('M j, Y · g:i a', user.timezone) }}</span>
+                        <span class="text-xs text-gray-400">{{ log.createdAt|date('D · M j, Y · g:i a', user.timezone) }}</span>
                     </div>
 
                     {# View mode #}
