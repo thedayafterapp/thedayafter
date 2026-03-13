@@ -94,7 +94,7 @@
         </div>
         <div class="overflow-hidden"
              :style="$store.chart.expanded ? 'flex:1;' : 'height:280px'">
-            <div class="relative w-full h-full px-5 py-4" id="mood-chart-wrap">
+            <div class="relative w-full h-full px-2 py-3" id="mood-chart-wrap">
                 <svg id="mood-chart-svg" class="w-full h-full"></svg>
             </div>
         </div>
@@ -144,7 +144,7 @@
 
             const W = wrap.clientWidth;
             const H = wrap.clientHeight;
-            const pad = { top: 14, right: 48, bottom: 42, left: 36 };
+            const pad = { top: 10, right: 17, bottom: 42, left: 25 };
             const cW = W - pad.left - pad.right;
             const cH = H - pad.top - pad.bottom;
             if (cW <= 0 || cH <= 0) return;
@@ -335,7 +335,7 @@
                 hitArea.addEventListener('touchend', e => {
                     e.preventDefault();
                     deactivate();
-                    scrollToEntry();
+                    setTimeout(scrollToEntry, 80);
                 }, { passive: false });
             });
         }
