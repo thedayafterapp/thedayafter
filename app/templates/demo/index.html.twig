@@ -491,8 +491,8 @@
                             <svg id="demo-mood-svg" class="w-full h-full" x-effect="renderMoodChart(moods)"></svg>
                         </div>
                     </div>
-                    <div class="px-5 pb-5 mt-3 space-y-2 overflow-y-auto">
-                        <template x-for="(m, i) in moods.slice().reverse()" :key="m.date">
+                    <div class="px-5 pb-5 mt-3 space-y-2 overflow-y-auto" x-data="{ showAll: false }">
+                        <template x-for="(m, i) in (showAll ? moods.slice().reverse() : moods.slice().reverse().slice(0, 5))" :key="m.date">
                             <div class="flex items-start gap-3 px-1 py-2 border-t border-gray-50">
                                 <span class="text-xl flex-shrink-0" x-text="m.score>=9?'😄':(m.score>=7?'😊':(m.score>=5?'😐':(m.score>=3?'😔':'😢')))"></span>
                                 <div class="flex-1 min-w-0">
@@ -506,6 +506,11 @@
                                 <button @click="moods = moods.filter(e => e.date !== m.date); persist()" class="text-gray-200 hover:text-red-400 transition text-sm leading-none flex-shrink-0">✕</button>
                             </div>
                         </template>
+                        <button x-show="moods.length > 5"
+                                @click="showAll = !showAll"
+                                class="w-full mt-1 py-2 text-xs font-semibold text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 rounded-xl transition-colors border-t border-gray-50"
+                                x-text="showAll ? 'Show less ↑' : 'Show all ' + moods.length + ' entries ↓'">
+                        </button>
                     </div>
                 </div>
 
