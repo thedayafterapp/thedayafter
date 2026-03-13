@@ -56,7 +56,7 @@
     {% set clogs = logs|reverse %}
     {% set chartData = [] %}
     {% for log in clogs %}
-    {% set chartData = chartData|merge([{'mood': log.mood, 'date': log.createdAt|date('M j · g:i a', user.timezone), 'id': log.id}]) %}
+    {% set chartData = chartData|merge([{'mood': log.mood, 'date': log.createdAt|date('D, M j · g:i a', user.timezone), 'id': log.id}]) %}
     {% endfor %}
 
     {# Backdrop when chart is fullscreen #}
@@ -144,7 +144,7 @@
 
             const W = wrap.clientWidth;
             const H = wrap.clientHeight;
-            const pad = { top: 14, right: 10, bottom: 42, left: 36 };
+            const pad = { top: 14, right: 48, bottom: 42, left: 36 };
             const cW = W - pad.left - pad.right;
             const cH = H - pad.top - pad.bottom;
             if (cW <= 0 || cH <= 0) return;
@@ -220,18 +220,23 @@
 
             // X axis labels — date + time, spaced so they don't collide
             let prevLabelX = -Infinity;
+            let prevDatePart = '';
             const MIN_SPACING = 72;
             DATA.forEach((d, i) => {
                 const x = pts[i].x;
                 if (x - prevLabelX < MIN_SPACING) return;
                 prevLabelX = x;
                 const [datePart, timePart] = d.date.split(' · ');
+                const sameDate = datePart === prevDatePart;
+                prevDatePart = datePart;
                 el('line', { x1: x, y1: pad.top, x2: x, y2: pad.top + cH,
                              stroke: '#f3f4f6', 'stroke-width': '1' }, svg);
-                const tDate = el('text', { x, y: pad.top + cH + 16, 'text-anchor':'middle',
-                                      'font-size':'11', fill:'#6b7280', 'font-family':'inherit', 'font-weight':'600' }, svg);
-                tDate.textContent = datePart;
-                const tTime = el('text', { x, y: pad.top + cH + 30, 'text-anchor':'middle',
+                if (!sameDate) {
+                    const tDate = el('text', { x, y: pad.top + cH + 16, 'text-anchor':'middle',
+                                          'font-size':'11', fill:'#6b7280', 'font-family':'inherit', 'font-weight':'600' }, svg);
+                    tDate.textContent = datePart;
+                }
+                const tTime = el('text', { x, y: sameDate ? pad.top + cH + 16 : pad.top + cH + 30, 'text-anchor':'middle',
                                       'font-size':'10', fill:'#9ca3af', 'font-family':'inherit' }, svg);
                 tTime.textContent = timePart;
             });
@@ -276,36 +281,62 @@
             const tipDate = document.getElementById('mood-tip-date');
             const tipMood = document.getElementById('mood-tip-mood');
 
+            let activeDot = null;
+            function showTip(p, x, y) {
+                tipDate.textContent = p.date;
+                tipMood.textContent = 'Mood ' + p.mood + ' / 10';
+                tip.style.left = (x + 14) + 'px';
+                tip.style.top  = (y - 52) + 'px';
+                tip.classList.remove('hidden');
+            }
+            function hideTip() { tip.classList.add('hidden'); }
+
             pts.forEach(p => {
                 const color = moodColor(p.mood);
-                const halo = el('circle', { cx: p.x, cy: p.y, r: '8', fill: color, opacity: '0', style: 'transition:opacity 0.15s, r 0.15s' }, svg);
-                const dot  = el('circle', { cx: p.x, cy: p.y, r: '4.5', fill: color, stroke: 'white', 'stroke-width': '2', style: 'cursor:pointer' }, svg);
+                const halo    = el('circle', { cx: p.x, cy: p.y, r: '8',  fill: color, opacity: '0' }, svg);
+                const dot     = el('circle', { cx: p.x, cy: p.y, r: '4.5', fill: color, stroke: 'white', 'stroke-width': '2', style: 'cursor:pointer' }, svg);
+                // invisible larger hit area for easier touch
+                const hitArea = el('circle', { cx: p.x, cy: p.y, r: '18', fill: 'transparent', style: 'cursor:pointer' }, svg);
 
-                dot.addEventListener('mouseenter', () => {
+                function activate(x, y) {
                     halo.setAttribute('opacity', '0.25');
                     halo.setAttribute('r', '10');
-                    tipDate.textContent = p.date;
-                    tipMood.textContent = 'Mood ' + p.mood + ' / 10';
-                    tip.classList.remove('hidden');
-                });
-                dot.addEventListener('mousemove', e => {
-                    tip.style.left = (e.clientX + 14) + 'px';
-                    tip.style.top  = (e.clientY - 52) + 'px';
-                });
-                dot.addEventListener('mouseleave', () => {
+                    showTip(p, x, y);
+                }
+                function deactivate() {
                     halo.setAttribute('opacity', '0');
                     halo.setAttribute('r', '8');
-                    tip.classList.add('hidden');
-                });
-                dot.addEventListener('click', () => {
-                    tip.classList.add('hidden');
+                    hideTip();
+                }
+                function scrollToEntry() {
                     const entry = document.getElementById('mood-entry-' + p.id);
                     if (!entry) return;
                     entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     entry.style.transition = 'box-shadow 0.3s';
                     entry.style.boxShadow = '0 0 0 3px ' + color;
                     setTimeout(() => { entry.style.boxShadow = ''; }, 1500);
-                });
+                }
+
+                // Mouse
+                hitArea.addEventListener('mouseenter', e => activate(e.clientX, e.clientY));
+                hitArea.addEventListener('mousemove',  e => { tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY - 52) + 'px'; });
+                hitArea.addEventListener('mouseleave', () => deactivate());
+                hitArea.addEventListener('click', () => { hideTip(); scrollToEntry(); });
+
+                // Touch
+                hitArea.addEventListener('touchstart', e => {
+                    e.preventDefault();
+                    if (activeDot && activeDot !== hitArea) activeDot._deactivate();
+                    activeDot = hitArea;
+                    hitArea._deactivate = deactivate;
+                    const t = e.touches[0];
+                    activate(t.clientX, t.clientY);
+                }, { passive: false });
+                hitArea.addEventListener('touchend', e => {
+                    e.preventDefault();
+                    deactivate();
+                    scrollToEntry();
+                }, { passive: false });
             });
         }
 
