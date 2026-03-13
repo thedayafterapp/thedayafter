@@ -448,15 +448,50 @@
                     </div>
                 </div>
 
-                {# ── Recent Mood chart — SVG line chart matching history page ── #}
-                <div x-show="moods.length > 0" x-cloak class="bg-white rounded-2xl border border-gray-100 p-5 relative" id="demo-mood-chart-wrap">
-                    <h2 class="font-bold text-gray-900 mb-3">📊 Recent Mood</h2>
-                    <div id="demo-mood-tip" class="hidden absolute pointer-events-none z-20 bg-gray-900 text-white text-xs rounded-xl px-3 py-2 shadow-lg w-36">
-                        <p id="demo-mood-tip-date" class="font-semibold"></p>
-                        <p id="demo-mood-tip-mood" class="text-white/70"></p>
+                {# ── Backdrop when mood chart is fullscreen ── #}
+                <div x-show="$store.demoChart.expanded"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     @click="$store.demoChart.collapse()"
+                     class="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+                     style="display:none"></div>
+
+                {# ── Fixed tooltip (outside overflow so it's never clipped) ── #}
+                <div id="demo-mood-tip"
+                     class="hidden fixed pointer-events-none z-50 bg-gray-900/95 backdrop-blur-sm text-white text-xs rounded-2xl px-3.5 py-2.5 shadow-xl min-w-max">
+                    <p id="demo-mood-tip-date" class="font-semibold text-white"></p>
+                    <p id="demo-mood-tip-mood" class="text-indigo-300 mt-0.5"></p>
+                </div>
+
+                {# ── Recent Mood chart ── #}
+                <div x-show="moods.length > 0" x-cloak
+                     :class="$store.demoChart.expanded ? 'fixed inset-4 z-50 rounded-2xl shadow-2xl flex flex-col bg-white' : 'bg-white rounded-2xl border border-gray-100 overflow-hidden'">
+                    <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-gray-50 flex-shrink-0">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">Mood Trend</p>
+                            <p class="text-xs text-gray-400 mt-0.5" x-text="moods.length + ' check-in' + (moods.length === 1 ? '' : 's')"></p>
+                        </div>
+                        <button @click="$store.demoChart.toggle()"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-indigo-500 hover:bg-indigo-50 transition-colors">
+                            <svg x-show="!$store.demoChart.expanded" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                            </svg>
+                            <svg x-show="$store.demoChart.expanded" xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 9L4 4m0 0h4M4 4v4m11-4l5 5m0-5h-4m4 0v4M4 20l5-5m-5 5h4m-4 0v-4m16 4l-5-5m5 5v-4m0 4h-4"/>
+                            </svg>
+                            <span x-text="$store.demoChart.expanded ? 'Collapse' : 'Expand'"></span>
+                        </button>
                     </div>
-                    <svg id="demo-mood-svg" viewBox="0 0 490 148" class="w-full" style="height:200px" x-effect="renderMoodChart(moods)"></svg>
-                    <div class="mt-4 space-y-2">
+                    <div class="overflow-hidden" :style="$store.demoChart.expanded ? 'flex:1;' : 'height:280px'">
+                        <div class="relative w-full h-full px-2 py-3" id="demo-mood-chart-wrap">
+                            <svg id="demo-mood-svg" class="w-full h-full" x-effect="renderMoodChart(moods)"></svg>
+                        </div>
+                    </div>
+                    <div class="px-5 pb-5 mt-3 space-y-2 overflow-y-auto">
                         <template x-for="(m, i) in moods.slice().reverse()" :key="m.date">
                             <div class="flex items-start gap-3 px-1 py-2 border-t border-gray-50">
                                 <span class="text-xl flex-shrink-0" x-text="m.score>=9?'😄':(m.score>=7?'😊':(m.score>=5?'😐':(m.score>=3?'😔':'😢')))"></span>
@@ -912,55 +947,226 @@ function demoApp() {
         },
 
         renderMoodChart(moods) {
-            const svg = document.getElementById('demo-mood-svg');
-            if (!svg) return;
+            const svg  = document.getElementById('demo-mood-svg');
+            const wrap = document.getElementById('demo-mood-chart-wrap');
+            if (!svg || !wrap) return;
+
+            // Register resize observer once so chart redraws on layout changes
+            if (!this._chartObserver && window.ResizeObserver) {
+                this._chartObserver = new ResizeObserver(() => this.renderMoodChart(this.moods));
+                this._chartObserver.observe(wrap);
+            }
+            // Expose redraw for fullscreen expand/collapse transitions
+            window._demoMoodChart = () => this.renderMoodChart(this.moods);
+
             svg.innerHTML = '';
             if (!moods || moods.length === 0) return;
-            const NS = 'http://www.w3.org/2000/svg';
-            const el = (tag, attrs) => {
-                const e = document.createElementNS(NS, tag);
-                for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, String(v));
-                return e;
-            };
-            const txt = (tag, attrs, text) => { const e = el(tag, attrs); e.textContent = text; return e; };
-            const cW=460, cH=120, cL=24, cT=8, cB=20, n=moods.length;
-            // Y gridlines
-            for (const yv of [1,2,4,6,8,10]) {
-                const gy = Math.round(cT + (10-yv)/10*cH);
-                svg.appendChild(el('line', {x1:cL,y1:gy,x2:cL+cW,y2:gy,stroke:[1,10].includes(yv)?'#e5e7eb':'#f3f4f6','stroke-width':1}));
-                svg.appendChild(txt('text', {x:cL-4,y:gy+3,'text-anchor':'end','font-size':8,fill:'#9ca3af'}, yv));
+
+            // Format ISO date → "Day, Mon D · H:MM am/pm"
+            function fmtDate(iso) {
+                const d = new Date(iso);
+                const days   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                const h = d.getHours(), m = d.getMinutes();
+                const ampm = h >= 12 ? 'pm' : 'am';
+                const hr = h % 12 || 12;
+                const min = m > 0 ? `:${String(m).padStart(2,'0')}` : '';
+                return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()} · ${hr}${min} ${ampm}`;
             }
-            // Points
-            const pts = moods.map((m,i) => ({
-                ix: Math.round(cL + (n>1 ? i/(n-1) : 0.5)*cW),
-                iy: Math.round(cT + (10-m.score)/10*cH),
-                m,
+
+            const DATA = moods.slice()
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .map(m => ({ mood: m.score, date: fmtDate(m.date) }));
+
+            function moodColor(m) {
+                if (m >= 8) return '#22c55e';
+                if (m >= 6) return '#84cc16';
+                if (m >= 4) return '#f59e0b';
+                return '#ef4444';
+            }
+
+            const W = wrap.clientWidth;
+            const H = wrap.clientHeight;
+            const pad = { top: 10, right: 17, bottom: 42, left: 25 };
+            const cW = W - pad.left - pad.right;
+            const cH = H - pad.top - pad.bottom;
+            if (cW <= 0 || cH <= 0) return;
+
+            const n = DATA.length;
+            const yInset = 10;
+            const pts = DATA.map((d, i) => ({
+                x: pad.left + (n > 1 ? i / (n - 1) : 0.5) * cW,
+                y: pad.top + yInset + (10 - d.mood) / 9 * (cH - yInset * 2),
+                mood: d.mood, date: d.date
             }));
-            // X date labels
-            let prevDay = '';
-            pts.forEach(({ix,m}) => {
-                const day = new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-                if (day !== prevDay) {
-                    svg.appendChild(el('line',{x1:ix,y1:cT,x2:ix,y2:cT+cH,stroke:'#f9fafb','stroke-width':1}));
-                    svg.appendChild(txt('text',{x:ix,y:cT+cH+cB-4,'text-anchor':'middle','font-size':8,fill:'#9ca3af'},day));
-                    prevDay = day;
-                }
+
+            const ns = 'http://www.w3.org/2000/svg';
+            function el(tag, attrs, parent) {
+                const e = document.createElementNS(ns, tag);
+                Object.entries(attrs || {}).forEach(([k, v]) => e.setAttribute(k, v));
+                if (parent) parent.appendChild(e);
+                return e;
+            }
+
+            svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+            const defs = el('defs', {}, svg);
+
+            // Area fill gradient
+            const areaGrad = el('linearGradient', { id:'dmc-area', x1:'0', y1:'0', x2:'0', y2:'1' }, defs);
+            el('stop', { offset:'0%',   'stop-color':'#6366f1', 'stop-opacity':'0.25' }, areaGrad);
+            el('stop', { offset:'100%', 'stop-color':'#6366f1', 'stop-opacity':'0.01' }, areaGrad);
+
+            // Line gradient
+            const lineGrad = el('linearGradient', { id:'dmc-line', x1:'0', y1:'0', x2:'1', y2:'0' }, defs);
+            el('stop', { offset:'0%',   'stop-color':'#a5b4fc' }, lineGrad);
+            el('stop', { offset:'100%', 'stop-color':'#6366f1' }, lineGrad);
+
+            // Dot glow filter
+            const filter = el('filter', { id:'dmc-glow', x:'-50%', y:'-50%', width:'200%', height:'200%' }, defs);
+            el('feGaussianBlur', { stdDeviation:'3', result:'blur' }, filter);
+            const merge = el('feMerge', {}, filter);
+            el('feMergeNode', { in:'blur' }, merge);
+            el('feMergeNode', { in:'SourceGraphic' }, merge);
+
+            // Clip path
+            const clip = el('clipPath', { id:'dmc-clip' }, defs);
+            el('rect', { x: pad.left, y: pad.top, width: cW, height: cH }, clip);
+
+            // Mood zone bands
+            [
+                { from: 7, to: 10, color: '#f0fdf4' },
+                { from: 4, to: 7,  color: '#fefce8' },
+                { from: 1, to: 4,  color: '#fff1f2' },
+            ].forEach(z => {
+                const y1 = pad.top + (10 - z.to)   / 9 * cH;
+                const y2 = pad.top + (10 - z.from) / 9 * cH;
+                el('rect', { x: pad.left, y: y1, width: cW, height: y2 - y1,
+                             fill: z.color, 'clip-path': 'url(#dmc-clip)' }, svg);
             });
-            // Line
-            if (n > 1) svg.appendChild(el('polyline',{points:pts.map(p=>`${p.ix},${p.iy}`).join(' '),fill:'none',stroke:'#6366f1','stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'}));
-            // Dots
-            const wrap = document.getElementById('demo-mood-chart-wrap');
-            const tip  = document.getElementById('demo-mood-tip');
+
+            // Grid lines + Y labels
+            [2, 4, 6, 8, 10].forEach(v => {
+                const gy = pad.top + (10 - v) / 9 * cH;
+                el('line', { x1: pad.left, y1: gy, x2: pad.left + cW, y2: gy,
+                             stroke: '#e5e7eb', 'stroke-width': '1',
+                             'stroke-dasharray': v % 4 === 0 ? '0' : '3 3' }, svg);
+                const t = el('text', { x: pad.left - 7, y: gy + 3.5, 'text-anchor': 'end',
+                                       'font-size': '11', fill: '#6b7280',
+                                       'font-family': 'inherit', 'font-weight': '500' }, svg);
+                t.textContent = v;
+            });
+
+            // Bottom border
+            el('line', { x1: pad.left, y1: pad.top + cH, x2: pad.left + cW, y2: pad.top + cH,
+                         stroke: '#e5e7eb', 'stroke-width': '1' }, svg);
+
+            // X axis labels — spaced so they don't collide
+            let prevLabelX = -Infinity, prevDatePart = '';
+            const MIN_SPACING = 72;
+            DATA.forEach((d, i) => {
+                const x = pts[i].x;
+                if (x - prevLabelX < MIN_SPACING) return;
+                prevLabelX = x;
+                const [datePart, timePart] = d.date.split(' · ');
+                const sameDate = datePart === prevDatePart;
+                prevDatePart = datePart;
+                el('line', { x1: x, y1: pad.top, x2: x, y2: pad.top + cH,
+                             stroke: '#f3f4f6', 'stroke-width': '1' }, svg);
+                if (!sameDate) {
+                    const tDate = el('text', { x, y: pad.top + cH + 16, 'text-anchor': 'middle',
+                                               'font-size': '11', fill: '#6b7280',
+                                               'font-family': 'inherit', 'font-weight': '600' }, svg);
+                    tDate.textContent = datePart;
+                }
+                const tTime = el('text', { x, y: sameDate ? pad.top + cH + 16 : pad.top + cH + 30,
+                                           'text-anchor': 'middle', 'font-size': '10',
+                                           fill: '#9ca3af', 'font-family': 'inherit' }, svg);
+                tTime.textContent = timePart;
+            });
+
+            if (n === 1) {
+                el('circle', { cx: pts[0].x, cy: pts[0].y, r: '5',
+                               fill: moodColor(pts[0].mood), stroke: 'white', 'stroke-width': '2' }, svg);
+                return;
+            }
+
+            // Smooth cubic bezier via Catmull-Rom → Bezier conversion
+            function smoothPath(points) {
+                const t = 0.35;
+                let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p0 = points[Math.max(0, i - 1)];
+                    const p1 = points[i];
+                    const p2 = points[i + 1];
+                    const p3 = points[Math.min(points.length - 1, i + 2)];
+                    const clampY = y => Math.max(pad.top, Math.min(pad.top + cH, y));
+                    const cp1x = p1.x + (p2.x - p0.x) * t;
+                    const cp1y = clampY(p1.y + (p2.y - p0.y) * t);
+                    const cp2x = p2.x - (p3.x - p1.x) * t;
+                    const cp2y = clampY(p2.y - (p3.y - p1.y) * t);
+                    d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+                }
+                return d;
+            }
+
+            const pathD = smoothPath(pts);
+            const first = pts[0], last = pts[pts.length - 1];
+            const baseY = pad.top + cH;
+            const areaD = pathD + ` L ${last.x} ${baseY} L ${first.x} ${baseY} Z`;
+
+            el('path', { d: areaD, fill: 'url(#dmc-area)', 'clip-path': 'url(#dmc-clip)' }, svg);
+            el('path', { d: pathD, fill: 'none', stroke: 'url(#dmc-line)',
+                         'stroke-width': '2.5', 'stroke-linecap': 'round', 'stroke-linejoin': 'round',
+                         'clip-path': 'url(#dmc-clip)' }, svg);
+
+            // Interactive dots
+            const tip     = document.getElementById('demo-mood-tip');
             const tipDate = document.getElementById('demo-mood-tip-date');
             const tipMood = document.getElementById('demo-mood-tip-mood');
-            pts.forEach(({ix,iy,m}) => {
-                const c = el('circle',{cx:ix,cy:iy,r:5,fill:'#6366f1',stroke:'white','stroke-width':1.5});
-                c.style.cursor = 'pointer';
-                const day = new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-                c.addEventListener('mouseenter', () => { tipDate.textContent=day; tipMood.textContent='Mood: '+m.score+'/10'; tip.classList.remove('hidden'); });
-                c.addEventListener('mousemove', e => { const r=wrap.getBoundingClientRect(); tip.style.left=(e.clientX-r.left+12)+'px'; tip.style.top=(e.clientY-r.top-52)+'px'; });
-                c.addEventListener('mouseleave', () => tip.classList.add('hidden'));
-                svg.appendChild(c);
+            let activeDot = null;
+
+            function showTip(p, x, y) {
+                tipDate.textContent = p.date;
+                tipMood.textContent = 'Mood ' + p.mood + ' / 10';
+                tip.style.left = (x + 14) + 'px';
+                tip.style.top  = (y - 52) + 'px';
+                tip.classList.remove('hidden');
+            }
+            function hideTip() { tip.classList.add('hidden'); }
+
+            pts.forEach(p => {
+                const color   = moodColor(p.mood);
+                const halo    = el('circle', { cx: p.x, cy: p.y, r: '8',   fill: color, opacity: '0' }, svg);
+                const dot     = el('circle', { cx: p.x, cy: p.y, r: '4.5', fill: color,
+                                               stroke: 'white', 'stroke-width': '2', style: 'cursor:pointer' }, svg);
+                const hitArea = el('circle', { cx: p.x, cy: p.y, r: '18',  fill: 'transparent', style: 'cursor:pointer' }, svg);
+
+                function activate(x, y) {
+                    halo.setAttribute('opacity', '0.25');
+                    halo.setAttribute('r', '10');
+                    showTip(p, x, y);
+                }
+                function deactivate() {
+                    halo.setAttribute('opacity', '0');
+                    halo.setAttribute('r', '8');
+                    hideTip();
+                }
+
+                hitArea.addEventListener('mouseenter', e => activate(e.clientX, e.clientY));
+                hitArea.addEventListener('mousemove',  e => { tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY - 52) + 'px'; });
+                hitArea.addEventListener('mouseleave', () => deactivate());
+                hitArea.addEventListener('touchstart', e => {
+                    e.preventDefault();
+                    if (activeDot && activeDot !== hitArea) activeDot._deactivate();
+                    activeDot = hitArea;
+                    hitArea._deactivate = deactivate;
+                    const t = e.touches[0];
+                    activate(t.clientX, t.clientY);
+                }, { passive: false });
+                hitArea.addEventListener('touchend', e => {
+                    e.preventDefault();
+                    deactivate();
+                }, { passive: false });
             });
         },
 
@@ -977,6 +1183,23 @@ function demoApp() {
         },
     };
 }
+
+document.addEventListener('alpine:init', () => {
+    Alpine.store('demoChart', {
+        expanded: false,
+        toggle() { this.expanded ? this.collapse() : this.expand(); },
+        expand() {
+            this.expanded = true;
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => window._demoMoodChart && window._demoMoodChart(), 50);
+        },
+        collapse() {
+            this.expanded = false;
+            document.body.style.overflow = '';
+            setTimeout(() => window._demoMoodChart && window._demoMoodChart(), 50);
+        }
+    });
+});
 
 function breathingExercise() {
     return {
