@@ -3,6 +3,7 @@ version: '3.9'
 services:
   nginx:
     image: nginx:alpine
+    restart: unless-stopped
     ports:
       - "${NGINX_PORT}:80"
     volumes:
@@ -15,6 +16,7 @@ services:
 
   php:
     build: .
+    restart: unless-stopped
     volumes:
       - ./app:/var/www/html
     environment:
@@ -36,6 +38,7 @@ services:
 
   mysql:
     image: mysql:8.0
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
